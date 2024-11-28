@@ -107,6 +107,45 @@ Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
     ```  
     ![Despliegue Prometheus](./img/despliegue_prometheus.png)
 
+- Para poder acceder por el navegador web se deberá hacer un `port-forwarding` de los servicios, para ellos se deberá ejecutar los siguientes comandos:
+
+  - Servicio de Grafana al puerto 3000 de la máquina:  
+
+    ```sh
+    kubectl -n monitoring port-forward svc/prometheus-grafana 3000:http-web
+    ```  
+    - Las credenciales por defecto son `admin` para el usuario y `prom-operator` para la contraseña.  
+
+      ![Login de Grafana](./img/principal_grafana.png)  
+
+    - Acceder al dashboard creado para observar las peticiones al servidor a través de la URL `http://localhost:3000/   dashboards`, seleccionando una vez en ella la opción Import y en el siguiente paso seleccionar **Upload JSON File** y seleccionar el archivo presente en esta carpeta llamado `custom_dashboard.json`.
+
+    ![Faltaria poner dashboard de Grafana cuando este](./img/dashboard_grafana.png)
+
+  - Servicio de Prometheus al puerto 9090 de la máquina:
+
+    ```sh
+    kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090
+    ```  
+
+    - Para acceder a la aplicación web principal debemos hacerlo a través de la URL `http://localhost:9090`.  
+    
+    ![Dashboard de Prometheus](./img/dashboard_prometheus.png)
+
+#### Desinstalar recursos
+Para desintalar los recursos una vez usados se deberá ejecutar los siguientes comandos:
+
+- Eliminar el chart `kube-prometheus-stack` en el namespace `monitoring`:
+
+  ```sh
+  helm -n monitoring uninstall prometheus
+  ```
+- Eliminar el perfil `practica` de Minikube para detener y borrar los recursos de Kubernetes y el entorno en Minikube:
+
+  ```sh
+  minikube delete -p practica      
+  ```  
+
 # Notes
 
 ### Laravel Versions
