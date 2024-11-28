@@ -81,7 +81,7 @@ Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
         --cpus=4 \
         --memory=4096 \
         --addons="metrics-server,default-storageclass,storage-provisioner" \
-        -p practica
+        -p practica-final
     ```  
     ![Creacion de cluster](./img/despliegue_minikube.png)
 - Añadir el repositorio de helm `prometheus-community` para poder desplegar el chart `kube-prometheus-stack`:
