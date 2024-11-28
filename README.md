@@ -35,6 +35,41 @@
 ### From the second time onwards
 - `docker compose up -d`
 
+### Despliegue de Prometheus y Grafana
+Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
+- Crear un cluster de Kubernetes:  
+
+    ```sh
+    minikube start --kubernetes-version='v1.28.3' \
+        --cpus=4 \
+        --memory=4096 \
+        --addons="metrics-server,default-storageclass,storage-provisioner" \
+        -p practica
+    ```  
+    ![Creacion de cluster](./img/despliegue_minikube.png)
+- Añadir el repositorio de helm `prometheus-community` para poder desplegar el chart `kube-prometheus-stack`:
+
+    ```sh
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update
+    ```  
+ - Desplegar el chart `kube-prometheus-stack` del repositorio de helm añadido en el paso anterior con los valores configurados en el archivo `kube-prometheus-stack/values.yaml` en el namespace `monitoring`:
+
+    ```sh
+    helm -n monitoring upgrade \
+        --install prometheus \
+        prometheus-community/kube-prometheus-stack \
+        -f kube-prometheus-stack/values.yaml \
+        --create-namespace \
+        --wait --version 55.4.0
+    ```
+    Para comprobar que se esta desplegando se deberá ejecutar el siguiente comando:
+
+    ```sh
+    kubectl --namespace monitoring get pods -l "release=prometheus"
+    ```  
+    ![Despliegue Prometheus](./img/despliegue_prometheus.png)
+
 # Notes
 
 ### Laravel Versions
