@@ -1,0 +1,89 @@
+# Default values for charts.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+####################################################################################################
+# PHP
+####################################################################################################
+php:
+  image:
+    repository: bryyyan/practica-final
+    tag: "1.1"
+    pullPolicy: IfNotPresent
+  port: 5173
+
+####################################################################################################
+# Nginx
+####################################################################################################    
+
+nginx:
+  image:
+    repository: nginx
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 80
+
+####################################################################################################
+# DATABASE (MySQL)
+####################################################################################################
+
+db:
+  image:
+    repository: mysql
+    tag: "8.1"
+    pullPolicy: IfNotPresent
+  port: 3306
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: refactorian
+    MYSQL_USER: refactorian
+    MYSQL_PASSWORD: refactorian
+
+####################################################################################################
+# phpMyAdmin
+####################################################################################################
+
+phpmyadmin:
+  image:
+    repository: phpmyadmin/phpmyadmin
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8080
+  environment:
+    PMA_HOST: db
+    PMA_PORT: 3306
+    PMA_ARBITRARY: 1
+
+####################################################################################################
+# Adminer
+####################################################################################################
+adminer:
+  image:
+    repository: adminer
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 9090
+
+####################################################################################################
+# Mailpit
+####################################################################################################
+mail:
+  image:
+    repository: axllent/mailpit
+    tag: latest
+    pullPolicy: IfNotPresent
+  ports:
+    http: 8025
+    smtp: 1025
+
+####################################################################################################
+# Redis
+####################################################################################################
+redis:
+  image:
+    repository: redis
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 6379
+  command: ["redis-server", "--appendonly", "yes"]
+

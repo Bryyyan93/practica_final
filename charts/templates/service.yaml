@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-php
+  labels:
+    app: php
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.php.port }}
+    targetPort: {{ .Values.php.port }}
+  selector:
+    app: php
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-redis
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.redis.port }}
+    targetPort: {{ .Values.redis.port }}
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-db
+  labels:
+    app: db
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.db.port }}
+    targetPort: {{ .Values.db.port }}
+  selector:
+    app: db
