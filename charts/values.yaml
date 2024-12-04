@@ -8,7 +8,7 @@
 php:
   image:
     repository: bryyyan/practica-final
-    tag: "1.1"
+    tag: "1.2"
     pullPolicy: IfNotPresent
   port: 5173
 

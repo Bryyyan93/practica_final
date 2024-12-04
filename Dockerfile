@@ -42,9 +42,13 @@ RUN php composer-setup.php
 RUN php -r "unlink('composer-setup.php');"
 RUN mv composer.phar /usr/local/bin/composer
 
-ENV COMPOSER_ALLOW_SUPERUSER 1
-ENV COMPOSER_HOME /composer
-ENV PATH $PATH:/composer/vendor/bin
+#ENV COMPOSER_ALLOW_SUPERUSER 1
+#ENV COMPOSER_HOME /composer
+#ENV PATH $PATH:/composer/vendor/bin
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_HOME=/composer \
+    PATH=$PATH:/composer/vendor/bin
+
 RUN composer config --global process-timeout 3600
 RUN composer global require "laravel/installer"
 
@@ -60,13 +64,6 @@ COPY composer.json /var/www/
 COPY composer.lock /var/www/
 # Ejecutar Composer dentro del contenedor para configurar el proyecto
 RUN ls -la /var/www && sleep 15
-
-
-# Permisos para Laravel
-RUN chown -R www-data:www-data storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache
-
-RUN composer setup
 
 EXPOSE 5173
 
