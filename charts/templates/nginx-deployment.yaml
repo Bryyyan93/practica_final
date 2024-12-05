@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
+        imagePullPolicy: "{{ .Values.nginx.image.pullPolicy }}"
+        ports:
+        - containerPort: {{ .Values.nginx.port }}
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: nginx-main-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: project-code
+          mountPath: /var/www
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: {{ .Release.Name }}-nginx-config
+      - name: nginx-main-config
+        configMap:
+          name: {{ .Release.Name }}-nginx-main-config
+      - name: project-code
+        persistentVolumeClaim:
+          claimName: php-storage

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-phpmyadmin
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      initContainers:
+      - name: fix-sessions-permissions
+        image: "{{ .Values.phpmyadmin.image.repository }}:{{ .Values.phpmyadmin.image.tag }}"
+        command: ["chmod"]
+        args: ["777", "/sessions"]
+        volumeMounts:
+        - name: phpmyadmin-sessions
+          mountPath: /sessions
+      containers:
+      - name: phpmyadmin
+        image: "{{ .Values.phpmyadmin.image.repository }}:{{ .Values.phpmyadmin.image.tag }}"
+        imagePullPolicy: {{ .Values.phpmyadmin.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.phpmyadmin.port }}
+        env:
+        - name: PMA_HOST
+          value: "{{ .Values.phpmyadmin.environment.PMA_HOST }}"
+        - name: PMA_PORT
+          value: "{{ .Values.phpmyadmin.environment.PMA_PORT }}"
+        - name: PMA_ARBITRARY
+          value: "{{ .Values.phpmyadmin.environment.PMA_ARBITRARY }}"
+        volumeMounts:
+        - name: phpmyadmin-sessions
+          mountPath: /sessions
+      volumes:
+      - name: phpmyadmin-sessions
+        emptyDir: {}

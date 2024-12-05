@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-php
+  labels:
+    app: php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php
+  template:
+    metadata:
+      labels:
+        app: php
+    spec:
+      initContainers:
+      - name: copy-data
+        image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag }}"
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          cp -R /var/www/* /mnt/www && \
+          chown -R www-data:www-data /mnt/www && \
+          chmod -R 775 /mnt/www
+          composer install --working-dir=/mnt/www
+          node -v && npm -v npm install && npm run build
+        volumeMounts:
+        - name: php-code
+          mountPath: /mnt/www
+      containers:
+      - name: php
+        image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.php.port }}
+        volumeMounts:
+        - name: php-code
+          mountPath: /var/www
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          php-fpm
+      volumes:
+      - name: php-code
+        persistentVolumeClaim:
+          claimName: php-storage
