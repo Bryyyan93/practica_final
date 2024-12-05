@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: laravel-mysql
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Bryyyan93/practica_final.git'
+    targetRevision: HEAD
+    path: charts
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: laravel-mysql
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
