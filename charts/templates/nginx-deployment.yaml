@@ -29,6 +29,14 @@ spec:
           subPath: nginx.conf
         - name: project-code
           mountPath: /var/www
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -f /var/www/public/index.php
+          initialDelaySeconds: 5
+          periodSeconds: 10
       volumes:
       - name: nginx-config
         configMap:
