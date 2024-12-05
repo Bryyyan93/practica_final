@@ -1,0 +1,7 @@
+# Ignorar archivos sensibles
+terraform.tfvars
+secrets.tf
+.terraform/
+*.tfstate
+*.tfstate.backup
+
