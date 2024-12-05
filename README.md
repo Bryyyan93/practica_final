@@ -25,11 +25,44 @@
 ![Migración de las tablas a database](img/migracionTablas.png)
 
 
+### Pasos a seguir para ArgoCD
 
+1. Si ArgoCD no está instalado en tu clúster de Kubernetes, instálalo ejecutando:
 
+```bash
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+2. Iniciar minikube
+```bash
+minikube start
+```
 
+3. Crear el namespace de ArgoCD si no existe
+```bash
+kubectl create namespace argocd
+```
+4. Exponer el servidor de ArgoCD
+Para acceder a la interfaz web de ArgoCD, realiza un port-forward al servicio del servidor de ArgoCD:
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+Accede a la interfaz en https://localhost:8080.
 
+5. Obtener las credenciales de acceso:
+El usuario por defecto de ArgoCD es admin. Para obtener la contraseña, ejecuta el siguiente comando:
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+```
+Copia la contraseña generada e inicia sesión en la interfaz web.
 
+6. Crear la aplicación en ArgoCd
+
+Aplica el archivo argoapp.yaml para registrar y desplegar la aplicación en ArgoCD:
+```bash
+kubectl apply -f practica_final/charts/argocd/argoapp.yaml
+```
+
+![Éxito despliegue en ArgoCD](img/exitoArgoCD.png)
 
 
 
