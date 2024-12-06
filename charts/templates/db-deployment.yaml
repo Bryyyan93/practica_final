@@ -31,6 +31,18 @@ spec:
         volumeMounts:
         - name: db-data
           mountPath: /var/lib/mysql
+      # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
+      readinessProbe:
+        exec:
+          command:
+          - /bin/sh
+          - -c
+            mysqladmin ping -h localhost --silent
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        timeoutSeconds: 2
+        successThreshold: 1
+        failureThreshold: 3    
       volumes:
       - name: db-data
         persistentVolumeClaim:
