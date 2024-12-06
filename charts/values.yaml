@@ -10,7 +10,7 @@ php:
     repository: bryyyan/practica-final
     tag: "1.2"
     pullPolicy: IfNotPresent
-  port: 5173
+  port: 9000 # Cambiar el puerto para que coincida con default-configmap
 
 ####################################################################################################
 # Nginx
@@ -87,3 +87,9 @@ redis:
   port: 6379
   command: ["redis-server", "--appendonly", "yes"]
 
+####################################################################################################
+# Ingress
+####################################################################################################  
+ingress:
+  enabled: true
+  host: practica.local
