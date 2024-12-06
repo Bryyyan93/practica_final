@@ -29,6 +29,7 @@ spec:
           subPath: nginx.conf
         - name: project-code
           mountPath: /var/www
+        # Esperar a que se despliegue el php antes de arrancar  
         readinessProbe:
           exec:
             command:
