@@ -20,8 +20,29 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
         - |
+          echo "Waiting for database to be ready..." && \
+          until mysqladmin ping -h {{ .Release.Name }}-db --silent; do
+            sleep 2;
+            echo "Still waiting for database...";
+          done;
+
           echo "Copying data to persistent volume..." && \
           cp -R /var/www/* /mnt/www && \
+
+          if [ -f /var/www/.env ]; then
+            cp /var/www/.env /mnt/www/.env;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Cambio en .env"
+          fi && \
+
+          if [ -f /var/www/.env.example ]; then
+            cp /var/www/.env.example /mnt/www/.env.example;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Cambio en .env.example"
+          fi && \
+
+          ls -la /mnt/www && \
+
           chown -R www-data:www-data /mnt/www && \
           chmod -R 775 /mnt/www
         volumeMounts:
@@ -44,8 +65,7 @@ spec:
           fi;
           chown -R www-data:www-data /var/www && \
           chmod -R 775 /var/www && \
-          composer install --working-dir=/var/www && \
-          npm install && npm run build && \
+          composer setup && \
           php-fpm
       volumes:
       - name: php-code
