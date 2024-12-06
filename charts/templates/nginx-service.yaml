@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-nginx
+  name: "{{ .Release.Name }}-{{ .Values.nginx.name }}"
   labels:
-    app: nginx
+    app: {{ .Values.nginx.name }}
 spec:
   type: ClusterIP
   ports:
   - port: {{ .Values.nginx.port }}
     targetPort: {{ .Values.nginx.port }}
   selector:
-    app: nginx
+    app: {{ .Values.nginx.name }}
