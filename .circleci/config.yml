@@ -34,12 +34,10 @@ jobs:
           command: |
             pecl install pcov \
             && docker-php-ext-enable pcov
-
       - run:
           name: Verificar PCOV
           command: |
             php -r "echo 'PCOV está ' . (extension_loaded('pcov') ? 'habilitado' : 'no habilitado') . PHP_EOL;"
-
       - run:
           name: Instalar dependencias de Laravel
           command: |
@@ -78,7 +76,7 @@ jobs:
 
   deploy_to_kubernetes:
     docker:
-      - image: php:8.3-fpm
+      - image: cimg/base:stable  # Imagen base que permite instalar dependencias
     steps:
       - checkout
       - run:
@@ -86,6 +84,12 @@ jobs:
           command: |
             echo "$KUBECONFIG" | base64 -d > kubeconfig
             export KUBECONFIG=$PWD/kubeconfig
+      - run:
+          name: Instalar kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl /usr/local/bin/kubectl
       - run:
           name: Aplicar manifiestos Kubernetes
           command: kubectl apply -f k8s/
@@ -101,4 +105,5 @@ workflows:
       - deploy_to_kubernetes:
           requires:
             - publish_docker_image
+
 
