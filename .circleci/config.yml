@@ -84,13 +84,10 @@ jobs:
       - run:
           name: Instalar kubectl
           command: |
-            apt-get update && apt-get install -y sudo
-            mkdir -p ~/bin  # Crear el directorio ~/bin si no existe
+            apt-get update && apt-get install -y sudo  # Instalar sudo si no está disponible
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
-            mv kubectl ~/bin/kubectl  # Mover a ~/bin
-            echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
-            export PATH=$PATH:~/bin  # Agregar ~/bin al PATH actual
+            sudo mv kubectl /usr/local/bin/kubectl  # Usar sudo para mover el archivo
 
       - run:
           name: Aplicar manifiestos Kubernetes
