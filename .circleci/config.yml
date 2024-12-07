@@ -6,14 +6,29 @@ orbs:
 jobs:
   test:
     docker:
-      - image: andyn151/ci-cd_practica:latest
-    resource_class: large  # Asignar más recursos al contenedor
+      - image: php:8.3-fpm  # Usando la imagen oficial de PHP
+    resource_class: large  # Recursos asignados
     steps:
       - checkout
       - run:
-          name: Docker Login
+          name: Instalar dependencias del sistema
           command: |
-            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+            apt-get update && apt-get install -y \
+            build-essential zlib1g-dev default-mysql-client curl gnupg procps vim git unzip libzip-dev libpq-dev \
+            libicu-dev libfreetype6-dev libjpeg62-turbo-dev libpng-dev
+      - run:
+          name: Configurar extensiones PHP
+          command: |
+            docker-php-ext-configure intl && docker-php-ext-install intl \
+            && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
+            && docker-php-ext-install gd \
+            && docker-php-ext-install zip pdo_mysql pdo_pgsql pgsql
+      - run:
+          name: Instalar Composer
+          command: |
+            curl -sS https://getcomposer.org/installer | php \
+            && mv composer.phar /usr/local/bin/composer \
+            && composer --version
       - run:
           name: Instalar dependencias de Laravel
           command: |
@@ -52,7 +67,7 @@ jobs:
 
   deploy_to_kubernetes:
     docker:
-      - image: andyn151/ci-cd_practica:latest
+      - image: php:8.3-fpm
     steps:
       - checkout
       - run:
