@@ -17,3 +17,7 @@ output "load_balancer_dns" {
   description = "DNS del Load Balancer"
   value       = module.load_balancer.load_balancer_dns_name
 }
+output "kubeconfig" {
+  value = aws_eks_cluster.example.kubeconfig
+  description = "Kubeconfig file to connect to the EKS cluster."
+}
