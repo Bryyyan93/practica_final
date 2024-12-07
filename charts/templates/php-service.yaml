@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-php
+  name: "{{ .Release.Name }}-{{ .Values.php.name }}"
   labels:
-    app: php
+    app: {{ .Values.php.name }}
 spec:
   type: ClusterIP
   ports:
   - port: {{ .Values.php.port }}
     targetPort: {{ .Values.php.port }}
   selector:
-    app: php
+    app: {{ .Values.php.name }}

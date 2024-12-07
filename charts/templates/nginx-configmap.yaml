@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-nginx-main-config
   labels:
-    app: nginx
+    app: {{.Values.nginx.name }}
 data:
   nginx.conf: |
     

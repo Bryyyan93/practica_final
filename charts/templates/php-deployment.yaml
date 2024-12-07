@@ -1,53 +1,90 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-php
+  name: "{{ .Release.Name }}-{{ .Values.php.name }}"
   labels:
-    app: php
+    app: {{ .Values.php.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: php
+      app: {{ .Values.php.name }}
   template:
     metadata:
       labels:
-        app: php
+        app: {{ .Values.php.name }}
     spec:
       initContainers:
-      - name: copy-data
+      # Copiar los datos que estan en la imagen Docker y montarla en el pvc
+      - name: {{ .Values.php.initcontainer.name }}
         image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag }}"
+        # Ejecuta un shell para procesar múltiples comandos necesarios para la migración de la base de datos
         command: ["/bin/sh", "-c"]
         args:
         - |
-          echo "Copying data to persistent volume..." && \
+          echo "Esperar a que este lista la DDBB..." && \
+          until mysqladmin ping -h {{ .Release.Name }}-db --silent; do
+            sleep 2;
+            echo "Esperando...";
+          done;
+
+          # Copiar datos de la aplicación al volumen persistente para asegurar que los archivos están disponibles
+          echo "Copiando los datos al pvc..." && \
           cp -R /var/www/* /mnt/www && \
+
+          # Copiar los .env donde se encuentra la configuracion inicial
+          if [ -f /var/www/.env ]; then
+            cp /var/www/.env /mnt/www/.env;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Actualizado DB_HOST en .env
+          fi && \
+
+          if [ -f /var/www/.env.example ]; then
+            cp /var/www/.env.example /mnt/www/.env.example;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Actualizado DB_HOST en .env.example""
+          fi && \
+
+          # Asegurarnos que los archivos estan presentes
+          echo "Verificando contenido del volumen persistente..." && \
+          ls -la /mnt/www && \
+
+          # Cambiar los permisos y propietarios
+          echo "Cambiando permisos en el volumen persistente..." && \
           chown -R www-data:www-data /mnt/www && \
-          chmod -R 775 /mnt/www
+          chmod -R 775 /mnt/www && \
+          echo "So long, and thanks for all the fish.!"
         volumeMounts:
-        - name: php-code
+        - name: {{ .Values.php.volumen.name }}
           mountPath: /mnt/www
       containers:
-      - name: php
+      - name: {{ .Values.php.name }}
         image: "{{ .Values.php.image.repository }}:{{ .Values.php.image.tag }}"
         ports:
         - containerPort: {{ .Values.php.port }}
         volumeMounts:
-        - name: php-code
+        - name: {{ .Values.php.volumen.name }}
           mountPath: /var/www
         command: ["/bin/sh", "-c"]
         args:
         - |
+          # Comprobar que composer existe antes de continuar
           if [ ! -f /var/www/composer.json ]; then
             echo "composer.json not found in /var/www. Exiting.";
-            exit 1;
+            exit 1; # Salir del script con un código de error
           fi;
+          
+          # Cambiar los permisos y propietarios
+          echo "Cambiando permisos en el volumen persistente..." && \
           chown -R www-data:www-data /var/www && \
           chmod -R 775 /var/www && \
-          composer install --working-dir=/var/www && \
-          npm install && npm run build && \
-          php-fpm
+          
+          # Instalar las dependencias de composer
+          echo "Instalando composer..." && \
+          composer setup && \
+          echo "So long, and thanks for all the fish.!" && \
+          php-fpm 
       volumes:
-      - name: php-code
+      - name: {{ .Values.php.volumen.name }}
         persistentVolumeClaim:
-          claimName: php-storage
+          claimName: {{ .Values.php.pvc.name }}

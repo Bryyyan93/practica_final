@@ -6,17 +6,26 @@
 # PHP
 ####################################################################################################
 php:
+  name: php
   image:
     repository: bryyyan/practica-final
     tag: "1.2"
     pullPolicy: IfNotPresent
-  port: 5173
+  port: 9000 # Cambiar el puerto para que coincida con default-configmap
+  initcontainer:
+    name: copy-data
+  volumen:
+    name: php-code
+  pvc:
+    name: php-storage
+    storage: 1Gi # Modificar el tamaño del pvc en caso de ser necesario 
 
 ####################################################################################################
 # Nginx
 ####################################################################################################    
 
 nginx:
+  name: nginx
   image:
     repository: nginx
     tag: latest
@@ -28,11 +37,17 @@ nginx:
 ####################################################################################################
 
 db:
+  name: db
   image:
     repository: mysql
     tag: "8.1"
     pullPolicy: IfNotPresent
   port: 3306
+  volumen:
+    name: db-data
+  pvc:
+    name: mysql-data
+    storage: 5Gi # Modificar el tamaño del pvc en caso de ser necesario 
   environment:
     MYSQL_ROOT_PASSWORD: root
     MYSQL_DATABASE: refactorian
@@ -44,6 +59,7 @@ db:
 ####################################################################################################
 
 phpmyadmin:
+  name: phpmyadmin
   image:
     repository: phpmyadmin/phpmyadmin
     tag: latest
@@ -57,7 +73,9 @@ phpmyadmin:
 ####################################################################################################
 # Adminer
 ####################################################################################################
+
 adminer:
+  name: adminer
   image:
     repository: adminer
     tag: latest
@@ -67,7 +85,9 @@ adminer:
 ####################################################################################################
 # Mailpit
 ####################################################################################################
+
 mail:
+  name: mail
   image:
     repository: axllent/mailpit
     tag: latest
@@ -79,11 +99,23 @@ mail:
 ####################################################################################################
 # Redis
 ####################################################################################################
+
 redis:
+  name: redis
   image:
     repository: redis
     tag: latest
     pullPolicy: IfNotPresent
   port: 6379
-  command: ["redis-server", "--appendonly", "yes"]
+  pvc:
+    name: redis-data
+    storage: 1Gi # Modificar el tamaño del pvc en caso de ser necesario 
 
+####################################################################################################
+# Ingress
+####################################################################################################
+  
+ingress:
+  name: ingress
+  enabled: true
+  host: practica.local

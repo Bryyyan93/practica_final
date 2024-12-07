@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Release.Name }}-{{ .Values.ingress.name }}"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+        # Añador los paths para los diferentes serviciops
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-nginx
+                port:
+                  number: {{ .Values.nginx.port }}
+          - path: /php
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-php
+                port:
+                  number: {{ .Values.php.port }}                  
+          - path: /phpmyadmin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-phpmyadmin
+                port:
+                  number: {{ .Values.phpmyadmin.port }}
+          - path: /adminer
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-adminer
+                port:
+                  number: {{ .Values.adminer.port }}
