@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: "{{ .Release.Name }}-{{ .Values.db.name }}"
   labels:
@@ -31,20 +31,19 @@ spec:
         volumeMounts:
         - name: {{ .Values.db.volumen.name }}
           mountPath: /var/lib/mysql
-      # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
-      readinessProbe:
-        exec:
-          command: ["/bin/sh", "-c"]
-          args: 
-          - |
-            echo "Checking database readiness..." && \
-            mysqladmin ping -h localhost --silent && \
-            echo "So long, and thanks for all the fish.!"
-        initialDelaySeconds: 10
-        periodSeconds: 5
-        timeoutSeconds: 2
-        successThreshold: 1
-        failureThreshold: 3    
+        # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
+        readinessProbe:
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              mysqladmin ping -h localhost --silent
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3    
       volumes:
       - name: {{ .Values.db.volumen.name }}
         persistentVolumeClaim:

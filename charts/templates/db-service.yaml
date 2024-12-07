@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Values.db.name }}
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
   - port: {{ .Values.db.port }}
     targetPort: {{ .Values.db.port }}
