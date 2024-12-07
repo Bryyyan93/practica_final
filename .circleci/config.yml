@@ -1,0 +1,79 @@
+version: 2.1
+
+orbs:
+  sonarcloud: sonarsource/sonarcloud@2.0.0
+  slack: circleci/slack@4.15.0
+
+jobs:
+  test:
+    docker:
+      - image: bryyyan/practica-final:latest
+    steps:
+      - checkout
+      - run:
+          name: Instalar dependencias de Laravel
+          command: |
+            composer install
+            cp .env.example .env
+            php artisan key:generate
+      - run:
+          name: Ejecutar pruebas unitarias
+          command: php artisan test
+      - run:
+          name: Ejecutar análisis de cobertura
+          command: php artisan test --coverage-clover=coverage.xml
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: coverage.xml
+      - sonarcloud/scan
+
+  publish_docker_image:
+    docker:
+      - image: bryyyan/practica-final:latest
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Build Docker image
+          command: docker build -t bryyyan/practica-final:latest .
+      - run:
+          name: Login to Docker Hub
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Push Docker image
+          command: docker push bryyyan/practica-final:latest
+
+  deploy_to_kubernetes:
+    docker:
+      - image: bryyyan/practica-final:latest
+    steps:
+      - checkout
+      - run:
+          name: Configurar kubectl
+          command: |
+            echo "$KUBECONFIG" | base64 -d > kubeconfig
+            export KUBECONFIG=$PWD/kubeconfig
+      - run:
+          name: Aplicar manifiestos Kubernetes
+          command: kubectl apply -f k8s/
+
+workflows:
+  version: 2.1
+  ci_cd_workflow:
+    jobs:
+      - test
+      - publish_docker_image:
+          requires:
+            - test
+      - deploy_to_kubernetes:
+          requires:
+            - publish_docker_image
+      - slack/notify:
+          requires:
+            - test
+            - publish_docker_image
+            - deploy_to_kubernetes
+          channel: "#alerts"
+          event: always
