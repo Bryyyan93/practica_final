@@ -24,22 +24,229 @@
 
 ![Migración de las tablas a database](img/migracionTablas.png)
 
+### Creación de los charts de Helm
+Los charts de Helm tiene la siguiente estructura:
+```
+Helm Chart: argocd
+  ├── templates/
+  │   ├── _helpers.tpl           # Funciones y helpers reutilizables
+  │   ├── adminer-deployment.yaml  # Deployment para Adminer
+  │   ├── adminer-service.yaml     # Service para Adminer
+  │   ├── db-statefulset.yaml      # statefulset para la base de datos
+  │   ├── db-pvc.yaml              # Persistent Volume Claim para la base de datos
+  │   ├── db-service.yaml          # Service para la base de datos
+  │   ├── default-configmap.yaml   # ConfigMap por defecto
+  │   ├── ingress.yaml             # Configuración de Ingress
+  │   ├── myadmin-deployment.yaml  # Deployment para MyAdmin
+  │   ├── myadmin-service.yaml     # Service para MyAdmin
+  │   ├── nginx-configmap.yaml     # ConfigMap para NGINX
+  │   ├── nginx-deployment.yaml    # Deployment para NGINX
+  │   ├── nginx-service.yaml       # Service para NGINX
+  │   ├── php-deployment.yaml      # Deployment para PHP
+  │   ├── php-pvc.yaml             # Persistent Volume Claim para PHP
+  │   ├── php-service.yaml         # Service para PHP
+  │   ├── redis-deployment.yaml    # Deployment para Redis
+  │   ├── redis-pvc.yaml           # Persistent Volume Claim para Redis
+  │   ├── redis-service.yaml       # Service para Redis
+  ├── .helmignore                  # Archivos ignorados por Helm
+  ├── Chart.yaml                   # Metadatos del Helm Chart
+  ├── values.yaml                  # Valores por defecto del Helm Chart
+```    
+#### PHP Deployment
+Define un `Deployment` para un contenedor PHP, incluyendo la inicialización del entorno (mediante `initContainers`) y la ejecución del servicio principal en los `containers`.  
+También se asegura de que los datos necesarios estén disponibles en un volumen persistente.  
+
+- **initContainers**: Se utiliza un contenedor de inicialización para configurar el entorno antes de que se inicie el contenedor principal. A continuación se describe los comando principales:  
+    - Esperar a que la base de datos este lista:
+    ```
+              echo "Esperar a que este lista la DDBB..." && \
+          until mysqladmin ping -h {{ .Release.Name }}-db --silent; do
+            sleep 2;
+            echo "Esperando...";
+          done;
+    ```  
+    - Copiar datos al volumen persistente Y confirmar que se copien:
+    ```
+              # Copiar los .env donde se encuentra la configuracion inicial
+          if [ -f /var/www/.env ]; then
+            cp /var/www/.env /mnt/www/.env;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Actualizado DB_HOST en .env
+          fi && \
+
+          if [ -f /var/www/.env.example ]; then
+            cp /var/www/.env.example /mnt/www/.env.example;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            echo "Actualizado DB_HOST en .env.example""
+          fi && \
+
+          # Asegurarnos que los archivos estan presentes
+          echo "Verificando contenido del volumen persistente..." && \
+          ls -la /mnt/www && \
+    ```  
+    - Cambiar permisos:
+    ```
+          # Cambiar los permisos y propietarios
+          echo "Cambiando permisos en el volumen persistente..." && \
+          chown -R www-data:www-data /mnt/www && \
+          chmod -R 775 /mnt/www && \
+    ```  
+- **containers**: Este es el contenedor principal que ejecuta PHP.  A continuación se describe los comando principales:  
+    - Verificar existencia de `composer.json`
+    ```
+          # Comprobar que composer existe antes de continuar
+          if [ ! -f /var/www/composer.json ]; then
+            echo "composer.json not found in /var/www. Exiting.";
+            exit 1; # Salir del script con un código de error
+          fi;
+    ```  
+    - Cambiar permisos  
+    ```
+          # Cambiar los permisos y propietarios
+          echo "Cambiando permisos en el volumen persistente..." && \
+          chown -R www-data:www-data /var/www && \
+          chmod -R 775 /var/www && \
+    ```  
+    - Instalar dependencias de Composer
+    ```
+          # Instalar las dependencias de composer
+          echo "Instalando composer..." && \
+          composer setup && \
+    ```
+    - Iniciar php-fpm: Arranca el servidor PHP-FPM, que manejará las solicitudes PHP
+    ```
+          php-fpm 
+    ``` 
+#### Dase de datos
+Para asegurar los datos de manera persitente se ha usado el `manifiestopersistentvolumeclaim`.
+- **db-pvc**: Asegura los datos almacenados en la base de datos desde `db-staefulset.yaml`.
+- **php-pvc**: Asegura los datos almacenados para los logs en `php-deployment.yaml`.
+
+Para la base de datos se usa el manifiesto de `statefulset` puesto que están diseñados específicamente para aplicaciones con estado como bases de datos. Asegura que cada pod tenga un identificador único y un volumen persistente asociado.
+
+El manifiesto es el siguiente:
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.db.pvc.name }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.db.pvc.storage }}
+```
+Para el resto de `pvc` usados la estructura será la misma.  
+Para gestionar este manifiesto, se debe modificar el manifiesto de `db-staefulset.yaml`.
+```
+      volumes:
+      - name: {{ .Values.db.volumen.name }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.db.pvc.name }}
+```
+#### Garantizar la resiliencia de la Aplicación
+Para garantizar la resiliencia de la aplicación se hará uso de los manifiestos de `LivenessProbe` y `readinessProbe`.
+Se ha configurado `readinessProbe` en db-statefulSet para comprobar que la dase de datos esta lista antes de aceptar conexiones:  
+```
+        # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
+        readinessProbe:
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              mysqladmin ping -h localhost --silent
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3  
+```  
+Tambien se ha añadido `readinessProbe` en `nginx-deployment` para esperar a que la aplicación de `php` este lista: 
+``` 
+        # Esperar a que se despliegue el php antes de arrancar  
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -f /var/www/public/index.php
+          initialDelaySeconds: 5
+          periodSeconds: 10
+```  
+
+#### Exponer la Aplicación al exterior
+Para poder exponer la aplicación al exterior se usará manifiesto del tipo Ingress el cual llamamos `ingress.yaml`.
+La configuración es la siguiente:
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Release.Name }}-{{ .Values.ingress.name }}"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+        # Añador los paths para los diferentes serviciops
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-nginx
+                port:
+                  number: {{ .Values.nginx.port }}
+          - path: /php
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-php
+                port:
+                  number: {{ .Values.php.port }}                  
+          - path: /phpmyadmin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-phpmyadmin
+                port:
+                  number: {{ .Values.phpmyadmin.port }}
+          - path: /adminer
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-adminer
+                port:
+                  number: {{ .Values.adminer.port }}
+```
+#### Comprobar despliegue
+Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos los siguientes comandos:  
+- Desplegar los charts: `helm upgrade --install my-app ./charts/`
+- Verificar el estado de los diferentes componentes desplegados:
+    - Verificar todos los estados: `kubectl get all`
+    ![Verificar estados](./img/ckeck-all-helm.png)  
+    - Verificar los `PVC`: `kubectl get pvc`
+    ![Verificar PVC](./img/get-pvc.png)
+    - Tambien lo podemos confirmar desde el dashboard de minikube:
+    ![Dashboard de minikube](./img/minikube-dashboard.png)
+
 
 ### Pasos a seguir para ArgoCD
 
-1. Si ArgoCD no está instalado en tu clúster de Kubernetes, instálalo ejecutando:
-
-```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-```
-2. Iniciar minikube
+1. Iniciar minikube
 ```bash
 minikube start
 ```
-
-3. Crear el namespace de ArgoCD si no existe
+2. Crear el namespace de ArgoCD si no existe
 ```bash
 kubectl create namespace argocd
+```
+3. Si ArgoCD no está instalado en tu clúster de Kubernetes, instálalo ejecutando:
+
+```bash
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 4. Exponer el servidor de ArgoCD
 Para acceder a la interfaz web de ArgoCD, realiza un port-forward al servicio del servidor de ArgoCD:
@@ -110,7 +317,7 @@ Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
 - Crear un cluster de Kubernetes:  
 
     ```sh
-    minikube start --kubernetes-version='v1.28.3' \
+    minikube start --kubernetes-version='v1.31.0' \
         --cpus=4 \
         --memory=4096 \
         --addons="metrics-server,default-storageclass,storage-provisioner" \
