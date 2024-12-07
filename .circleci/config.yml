@@ -70,10 +70,8 @@ workflows:
       - deploy_to_kubernetes:
           requires:
             - publish_docker_image
+    commands:
       - slack/notify:
-          requires:
-            - test
-            - publish_docker_image
-            - deploy_to_kubernetes
           channel: "#alerts"
           event: always
+
