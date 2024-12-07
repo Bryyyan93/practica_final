@@ -7,7 +7,7 @@ orbs:
 jobs:
   test:
     docker:
-      - image: bryyyan/practica-final:latest
+      - image: bryyyan93/practica-final:latest
     steps:
       - checkout
       - run:
@@ -30,24 +30,24 @@ jobs:
 
   publish_docker_image:
     docker:
-      - image: bryyyan/practica-final:latest
+      - image: bryyyan93/practica-final:latest
     steps:
       - setup_remote_docker
       - checkout
       - run:
           name: Build Docker image
-          command: docker build -t bryyyan/practica-final:latest .
+          command: docker build -t bryyyan93/practica_final:latest .
       - run:
           name: Login to Docker Hub
           command: |
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       - run:
           name: Push Docker image
-          command: docker push bryyyan/practica-final:latest
+          command: docker push bryyyan93/practica_final:latest
 
   deploy_to_kubernetes:
     docker:
-      - image: bryyyan/practica-final:latest
+      - image: bryyyan93/practica-final:latest
     steps:
       - checkout
       - run:
@@ -58,6 +58,14 @@ jobs:
       - run:
           name: Aplicar manifiestos Kubernetes
           command: kubectl apply -f k8s/
+
+  slack_notify:
+    docker:
+      - image: circleci/slack@4.15.0
+    steps:
+      - slack/notify:
+          channel: "#alerts"
+          event: always
 
 workflows:
   version: 2.1
@@ -70,8 +78,7 @@ workflows:
       - deploy_to_kubernetes:
           requires:
             - publish_docker_image
-    commands:
-      - slack/notify:
-          channel: "#alerts"
-          event: always
+      - slack_notify:
+          requires:
+            - deploy_to_kubernetes
 
