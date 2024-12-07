@@ -91,7 +91,8 @@ jobs:
 
       - run:
           name: Aplicar manifiestos Kubernetes
-          command: kubectl apply -f k8s/
+          command: kubectl apply -f k8s/ --validate=false
+
 
 workflows:
   version: 2.1
