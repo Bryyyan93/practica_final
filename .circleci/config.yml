@@ -2,14 +2,18 @@ version: 2.1
 
 orbs:
   sonarcloud: sonarsource/sonarcloud@2.0.0
-  slack: circleci/slack@4.15.0
 
 jobs:
   test:
     docker:
       - image: andyn151/ci-cd_practica:latest
+    resource_class: large  # Asignar más recursos al contenedor
     steps:
       - checkout
+      - run:
+          name: Docker Login
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       - run:
           name: Instalar dependencias de Laravel
           command: |
@@ -30,7 +34,8 @@ jobs:
 
   publish_docker_image:
     docker:
-      - image: andyn151/ci-cd_practica:latest
+      - image: cimg/base:stable  # Imagen base para ejecutar Docker
+    resource_class: medium
     steps:
       - setup_remote_docker
       - checkout
@@ -59,14 +64,6 @@ jobs:
           name: Aplicar manifiestos Kubernetes
           command: kubectl apply -f k8s/
 
-  slack_notify:
-    docker:
-      - image: circleci/slack@4.15.0
-    steps:
-      - slack/notify:
-          channel: "#alerts"
-          event: always
-
 workflows:
   version: 2.1
   ci_cd_workflow:
@@ -78,6 +75,3 @@ workflows:
       - deploy_to_kubernetes:
           requires:
             - publish_docker_image
-      - slack_notify:
-          requires:
-            - deploy_to_kubernetes
