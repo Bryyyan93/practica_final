@@ -30,13 +30,16 @@ jobs:
             && mv composer.phar /usr/local/bin/composer \
             && composer --version
       - run:
-          name: Habilitar PCOV para cobertura
+          name: Instalar PCOV
           command: |
-            docker-php-ext-enable pcov
+            pecl install pcov \
+            && docker-php-ext-enable pcov
+
       - run:
-          name: Verificar driver de cobertura
+          name: Verificar PCOV
           command: |
-            php -r "echo 'Coverage driver: ' . (extension_loaded('pcov') ? 'PCOV' : (extension_loaded('xdebug') ? 'Xdebug' : 'None')) . PHP_EOL;"
+            php -r "echo 'PCOV está ' . (extension_loaded('pcov') ? 'habilitado' : 'no habilitado') . PHP_EOL;"
+
       - run:
           name: Instalar dependencias de Laravel
           command: |
