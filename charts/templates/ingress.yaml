@@ -14,27 +14,21 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-nginx
+                name: "{{ .Release.Name }}-{{ .Values.nginx.name }}"
                 port:
                   number: {{ .Values.nginx.port }}
-          - path: /php
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-php
-                port:
-                  number: {{ .Values.php.port }}                  
+                 
           - path: /phpmyadmin
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-phpmyadmin
+                name: "{{ .Release.Name }}-{{ .Values.phpmyadmin.name }}"
                 port:
                   number: {{ .Values.phpmyadmin.port }}
           - path: /adminer
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-adminer
+                name: "{{ .Release.Name }}-{{ .Values.adminer.name }}"
                 port:
                   number: {{ .Values.adminer.port }}
