@@ -7,30 +7,48 @@ metadata:
 data:
   default.conf: |
     server {
-    listen 80;
-    index index.php index.html;
-    root /var/www/public;
+      listen 80;
+      index index.php index.html;
+      root /var/www/public;
 
-    client_max_body_size 100M; # 413 Request Entity Too Large
+      client_max_body_size 100M; # 413 Request Entity Too Large
 
-    location / {
-        root /var/www/public;
-        index  index.html index.php;
-        try_files $uri $uri/ /index.php?$query_string;
-    }
+      location / {
+          root /var/www/public;
+          index  index.html index.php;
+          try_files $uri $uri/ /index.php?$query_string;
+      }
 
-    location ~ \.php$ {
-        try_files $uri =404;
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass {{ .Release.Name }}-php:{{ .Values.php.port }}; # Usar el nombre del servicio
-        fastcgi_read_timeout 3600;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param PATH_INFO $fastcgi_path_info;
-        send_timeout 3600;
-        proxy_connect_timeout 3600;
-        proxy_read_timeout    3600;
-        proxy_send_timeout    3600;
-    }
+      # configuración de las rutas para que están configuradas correctamente para phpMyAdmi
+      location /{{ .Values.phpmyadmin.name }}/ {
+          proxy_pass http://{{ .Release.Name }}-{{ .Values.phpmyadmin.name }}:{{ .Values.phpmyadmin.port }};
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+
+          # Sub filtros para ajustar las rutas
+          sub_filter_once off;
+          sub_filter '/themes' '/{{ .Values.phpmyadmin.name }}/themes';
+          sub_filter '/js' '/{{ .Values.phpmyadmin.name }}/js';
+          sub_filter '/css' '/{{ .Values.phpmyadmin.name }}/css';
+          sub_filter '/vendor' '/{{ .Values.phpmyadmin.name }}/vendor';
+          sub_filter '/dist' '/{{ .Values.phpmyadmin.name }}/dist';
+        }
+
+      # Manejo de archivos PHP
+      location ~ \.php$ {
+          try_files $uri =404;
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass {{ .Release.Name }}-{{ .Values.php.name }}:{{ .Values.php.port }}; # Usar el nombre del servicio
+          fastcgi_read_timeout 3600;
+          fastcgi_index index.php;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_param PATH_INFO $fastcgi_path_info;
+          send_timeout 3600;
+          proxy_connect_timeout 3600;
+          proxy_read_timeout    3600;
+          proxy_send_timeout    3600;
+      }
     }
