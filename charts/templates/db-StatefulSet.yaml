@@ -21,13 +21,25 @@ spec:
         - containerPort: {{ .Values.db.port }}
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.db.environment.MYSQL_ROOT_PASSWORD }}
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_ROOT_PASSWORD
         - name: MYSQL_DATABASE
-          value: {{ .Values.db.environment.MYSQL_DATABASE }}
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_DATABASE
         - name: MYSQL_USER
-          value: {{ .Values.db.environment.MYSQL_USER }}
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_USER
         - name: MYSQL_PASSWORD
-          value: {{ .Values.db.environment.MYSQL_PASSWORD }}
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: MYSQL_PASSWORD
         volumeMounts:
         - name: {{ .Values.db.volumen.name }}
           mountPath: /var/lib/mysql

@@ -48,11 +48,7 @@ db:
   pvc:
     name: mysql-data
     storage: 5Gi # Modificar el tamaño del pvc en caso de ser necesario 
-  environment:
-    MYSQL_ROOT_PASSWORD: root
-    MYSQL_DATABASE: refactorian
-    MYSQL_USER: refactorian
-    MYSQL_PASSWORD: refactorian
+  environment: {}
 
 ####################################################################################################
 # phpMyAdmin
@@ -119,3 +115,34 @@ ingress:
   name: ingress
   enabled: true
   host: practica.local
+
+####################################################################################################
+# Prometheus and Grafana
+####################################################################################################
+kube-prometheus-stack:
+  grafana:
+    adminPassword: "admin-password"
+    service:
+      type: ClusterIP
+    dashboardsConfigMaps: {}
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            url: http://laravel-mysql-kube-prometh-prometheus.laravel-mysql.svc.cluster.local:9090
+            access: proxy
+            isDefault: true
+            jsonData:
+              httpMethod: POST
+              timeInterval: 30s
+
+  prometheus:
+    service:
+      type: ClusterIP
+
+  alertmanager:
+    service:
+      type: ClusterIP
+
