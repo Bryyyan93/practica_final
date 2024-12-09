@@ -23,10 +23,11 @@ spec:
         args:
         - |
           echo "Esperar a que este lista la DDBB..." && \
-          until mysqladmin ping -h {{ .Release.Name }}-db --silent; do
+          until mysqladmin ping -h {{ .Release.Name }}-{{ .Values.db.name }} --silent; do
             sleep 2;
             echo "Esperando...";
           done;
+          echo "Database is ready!";
 
           # Copiar datos de la aplicación al volumen persistente para asegurar que los archivos están disponibles
           echo "Copiando los datos al pvc..." && \
@@ -35,13 +36,13 @@ spec:
           # Copiar los .env donde se encuentra la configuracion inicial
           if [ -f /var/www/.env ]; then
             cp /var/www/.env /mnt/www/.env;
-            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-{{ .Values.db.name }}/' /mnt/www/.env;
             echo "Actualizado DB_HOST en .env
           fi && \
 
           if [ -f /var/www/.env.example ]; then
             cp /var/www/.env.example /mnt/www/.env.example;
-            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-db/' /mnt/www/.env;
+            sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-{{ .Values.db.name }}/' /mnt/www/.env;
             echo "Actualizado DB_HOST en .env.example""
           fi && \
 

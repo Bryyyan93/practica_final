@@ -64,7 +64,7 @@ phpmyadmin:
     repository: phpmyadmin/phpmyadmin
     tag: latest
     pullPolicy: IfNotPresent
-  port: 8080
+  port: 80
   environment:
     PMA_HOST: db
     PMA_PORT: 3306
@@ -80,7 +80,7 @@ adminer:
     repository: adminer
     tag: latest
     pullPolicy: IfNotPresent
-  port: 9090
+  port: 8080
 
 ####################################################################################################
 # Mailpit

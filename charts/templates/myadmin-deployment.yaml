@@ -17,8 +17,19 @@ spec:
       initContainers:
       - name: fix-sessions-permissions
         image: "{{ .Values.phpmyadmin.image.repository }}:{{ .Values.phpmyadmin.image.tag }}"
-        command: ["chmod"]
-        args: ["777", "/sessions"]
+        command: ["/bin/sh", "-c"]
+        args: 
+        - |
+          echo "Waiting for database to be ready..." && \
+          apt-get update && apt-get install -y default-mysql-client && \
+          until mysqladmin ping -h {{ .Release.Name }}-db --silent; do
+            sleep 2;
+            echo "Still waiting for database..."; 
+          done;
+
+          echo "Database is ready!" && \
+
+          chmod 777 /sessions
         volumeMounts:
         - name: phpmyadmin-sessions
           mountPath: /sessions
