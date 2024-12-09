@@ -37,13 +37,13 @@ spec:
           if [ -f /var/www/.env ]; then
             cp /var/www/.env /mnt/www/.env;
             sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-{{ .Values.db.name }}/' /mnt/www/.env;
-            echo "Actualizado DB_HOST en .env
+            echo "Actualizado DB_HOST en .env";
           fi && \
 
           if [ -f /var/www/.env.example ]; then
             cp /var/www/.env.example /mnt/www/.env.example;
             sed -i 's/^DB_HOST=.*/DB_HOST={{ .Release.Name }}-{{ .Values.db.name }}/' /mnt/www/.env;
-            echo "Actualizado DB_HOST en .env.example""
+            echo "Actualizado DB_HOST en .env.example";
           fi && \
 
           # Asegurarnos que los archivos estan presentes
@@ -85,6 +85,23 @@ spec:
           composer setup && \
           echo "So long, and thanks for all the fish.!" && \
           php-fpm 
+        resources:
+          requests:
+            cpu: "100m"       # CPU mínima solicitada
+            memory: "128Mi"   # Memoria mínima solicitada
+          limits:
+            cpu: "500m"       # CPU máxima permitida
+            memory: "256Mi"   # Memoria máxima permitida
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.php.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.php.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5      
       volumes:
       - name: {{ .Values.php.volumen.name }}
         persistentVolumeClaim:
