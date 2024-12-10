@@ -9,7 +9,7 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-        # Añador los paths para los diferentes serviciops
+        # Añador los paths para los diferentes servicios
           - path: /
             pathType: Prefix
             backend:
@@ -17,7 +17,6 @@ spec:
                 name: "{{ .Release.Name }}-{{ .Values.nginx.name }}"
                 port:
                   number: {{ .Values.nginx.port }}
-                 
           - path: /phpmyadmin
             pathType: Prefix
             backend:

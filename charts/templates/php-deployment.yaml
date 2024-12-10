@@ -87,21 +87,23 @@ spec:
           php-fpm 
         resources:
           requests:
-            cpu: "100m"       # CPU mínima solicitada
-            memory: "128Mi"   # Memoria mínima solicitada
+            cpu: {{ .Values.php.resources.requests.cpu }}       # CPU mínima solicitada
+            memory: {{ .Values.php.resources.requests.memory }} # Memoria mínima solicitada
           limits:
-            cpu: "500m"       # CPU máxima permitida
-            memory: "256Mi"   # Memoria máxima permitida
+            cpu: {{ .Values.php.resources.limits.cpu }}         # CPU máxima permitida
+            memory: {{ .Values.php.resources.limits.memory }}   # Memoria máxima permitida
+        # php-fpm no está configurado para escuchar directamente en HTTP, se usa tcpSocket    
         livenessProbe:
           tcpSocket:
             port: {{ .Values.php.port }}
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          initialDelaySeconds: {{ .Values.php.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.php.liveness.periodSeconds }}
+        # php-fpm no está configurado para escuchar directamente en HTTP, se usa tcpSocket  
         readinessProbe:
           tcpSocket:
             port: {{ .Values.php.port }}
-          initialDelaySeconds: 5
-          periodSeconds: 5      
+          initialDelaySeconds: {{ .Values.php.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.php.readiness.periodSeconds }}      
       volumes:
       - name: {{ .Values.php.volumen.name }}
         persistentVolumeClaim:

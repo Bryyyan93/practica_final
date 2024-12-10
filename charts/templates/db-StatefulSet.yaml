@@ -51,11 +51,11 @@ spec:
             - "-c"
             - |
               mysqladmin ping -h localhost --silent
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 2
-          successThreshold: 1
-          failureThreshold: 3    
+          initialDelaySeconds: {{ .Values.db.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.db.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.db.readiness.timeoutSeconds }}
+          successThreshold: {{ .Values.db.readiness.successThreshold }}
+          failureThreshold: {{ .Values.db.readiness.failureThreshold }}
       volumes:
       - name: {{ .Values.db.volumen.name }}
         persistentVolumeClaim:

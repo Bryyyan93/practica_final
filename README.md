@@ -27,7 +27,7 @@
 ### Creación de los charts de Helm
 Los charts de Helm tiene la siguiente estructura:
 ```
-Helm Chart: argocd
+Helm Charts
   ├── templates/
   │   ├── _helpers.tpl           # Funciones y helpers reutilizables
   │   ├── adminer-deployment.yaml  # Deployment para Adminer
@@ -117,8 +117,8 @@ También se asegura de que los datos necesarios estén disponibles en un volumen
     ```
           php-fpm 
     ``` 
-#### Dase de datos
-Para asegurar los datos de manera persitente se ha usado el `manifiestopersistentvolumeclaim`.
+#### Base de datos
+Para asegurar los datos de manera persitente se ha usado el manifiesto `persistentvolumeclaim`.
 - **db-pvc**: Asegura los datos almacenados en la base de datos desde `db-staefulset.yaml`.
 - **php-pvc**: Asegura los datos almacenados para los logs en `php-deployment.yaml`.
 
@@ -146,25 +146,27 @@ Para gestionar este manifiesto, se debe modificar el manifiesto de `db-staefulse
           claimName: {{ .Values.db.pvc.name }}
 ```
 #### Garantizar la resiliencia de la Aplicación
-Para garantizar la resiliencia de la aplicación se hará uso de los manifiestos de `LivenessProbe` y `readinessProbe`.
-Se ha configurado `readinessProbe` en db-statefulSet para comprobar que la dase de datos esta lista antes de aceptar conexiones:  
-```
-        # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
-        readinessProbe:
-          exec:
-            command:
-            - "/bin/sh"
-            - "-c"
-            - |
-              mysqladmin ping -h localhost --silent
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 2
-          successThreshold: 1
-          failureThreshold: 3  
-```  
-Tambien se ha añadido `readinessProbe` en `nginx-deployment` para esperar a que la aplicación de `php` este lista: 
-``` 
+Para garantizar la resiliencia de la aplicación se hará uso de las `probes`: `LivenessProbe` y `readinessProbe`.
+
+- **readinessProbe** se ha configurado en los siguientes manifiestos:
+  - **db-statefulSet**: para comprobar que la dase de datos esta lista antes de aceptar conexiones:  
+  ```
+          # asegurarte de que solo esté marcado como listo cuando pueda aceptar conexiones
+          readinessProbe:
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - |
+                mysqladmin ping -h localhost --silent
+            initialDelaySeconds: {{ .Values.db.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.db.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.db.readiness.timeoutSeconds }}
+            successThreshold: {{ .Values.db.readiness.successThreshold }}
+            failureThreshold: {{ .Values.db.readiness.failureThreshold }}
+  ```  
+  - **nginx-deployment**: para esperar a que la aplicación de `php` este lista: 
+  ``` 
         # Esperar a que se despliegue el php antes de arrancar  
         readinessProbe:
           exec:
@@ -172,66 +174,125 @@ Tambien se ha añadido `readinessProbe` en `nginx-deployment` para esperar a que
             - /bin/sh
             - -c
             - test -f /var/www/public/index.php
-          initialDelaySeconds: 5
-          periodSeconds: 10
-```  
+          initialDelaySeconds: {{ .Values.nginx.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.nginx.readiness.periodSeconds }}
+  ```  
+  - **php-deployment**: necesario para usar `metrics` que será usado en el manifiesto de `HorizontalPodAutoscaler`.
+  ```
+        # php-fpm no está configurado para escuchar directamente en HTTP, se usa tcpSocket  
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.php.port }}
+          initialDelaySeconds: {{ .Values.php.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.php.readiness.periodSeconds }}  
+  ```  
+- **LivenessProbe** se ha configurado en los siguientes manifiestos:
+  - **php-deployment**: necesario para usar `metrics` que será usado en el manifiesto de `HorizontalPodAutoscaler`.
+  ```
+        # php-fpm no está configurado para escuchar directamente en HTTP, se usa tcpSocket    
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.php.port }}
+          initialDelaySeconds: {{ .Values.php.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.php.liveness.periodSeconds }}
+  ```
 
+#### Escalar la Aplicación de manera automática
+Para realizar la escabilidad se ha usado el manifiesto de `HorizontalPodAutoscaler`. Este manifiesto realizará un escalado horizontal.  
+En este apartado se incluye el número minimo de replicas (2) para asegurar que la aplicación siempre esta disponible.  
+```
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: "{{ .Release.Name }}-{{ .Values.php.name}}-{{.Values.hpa.name}}" 
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: "{{ .Release.Name }}-{{ .Values.php.name }}"  # El nombre del PHP deployment
+  minReplicas: {{ .Values.hpa.minReplicas}}
+  maxReplicas: {{ .Values.hpa.maxReplicas}}
+  metrics:
+  - type: Resource
+    resource:
+      name: {{ .Values.hpa.resource.name}}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.resource.utilization}}  # Escalar si el uso promedio de CPU supera el %
+```  
+Se ha incluido tambien en `php-deployment` unos requerimientos mínimos y máximos tanto de CPU como de memória.  
+```
+        resources:
+          requests:
+            cpu: {{ .Values.php.resources.requests.cpu }}       # CPU mínima solicitada
+            memory: {{ .Values.php.resources.requests.memory }} # Memoria mínima solicitada
+          limits:
+            cpu: {{ .Values.php.resources.limits.cpu }}         # CPU máxima permitida
+            memory: {{ .Values.php.resources.limits.memory }}   # Memoria máxima permitida
+```
 #### Exponer la Aplicación al exterior
 Para poder exponer la aplicación al exterior se usará manifiesto del tipo Ingress el cual llamamos `ingress.yaml`.
 La configuración es la siguiente:
 ```
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: "{{ .Release.Name }}-{{ .Values.ingress.name }}"
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-        # Añador los paths para los diferentes serviciops
+        # Añador los paths para los diferentes servicios
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-nginx
+                name: "{{ .Release.Name }}-{{ .Values.nginx.name }}"
                 port:
                   number: {{ .Values.nginx.port }}
-          - path: /php
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-php
-                port:
-                  number: {{ .Values.php.port }}                  
           - path: /phpmyadmin
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-phpmyadmin
+                name: "{{ .Release.Name }}-{{ .Values.phpmyadmin.name }}"
                 port:
                   number: {{ .Values.phpmyadmin.port }}
           - path: /adminer
             pathType: Prefix
             backend:
               service:
-                name: {{ .Release.Name }}-adminer
+                name: "{{ .Release.Name }}-{{ .Values.adminer.name }}"
                 port:
                   number: {{ .Values.adminer.port }}
 ```
 #### Comprobar despliegue
 Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos los siguientes comandos:  
-- Desplegar los charts: `helm upgrade --install my-app ./charts/`
-- Verificar el estado de los diferentes componentes desplegados:
-    - Verificar todos los estados: `kubectl get all`
+- Desplegar los charts: `helm upgrade --install my-app ./charts/`  
+- Verificar el estado de los diferentes componentes desplegados:  
+    - Verificar todos los estados: `kubectl get all`  
     ![Verificar estados](./img/ckeck-all-helm.png)  
-    - Verificar los `PVC`: `kubectl get pvc`
+    - Verificar los `PVC`: `kubectl get pvc`  
     ![Verificar PVC](./img/get-pvc.png)
-    - Tambien lo podemos confirmar desde el dashboard de minikube:
+    - Verificar autoescalado: `kubectl get hpa -w`  
+    ![Autoescalado](./img/hpa_down.png)
+    - Tambien lo podemos confirmar desde el dashboard de minikube:  
     ![Dashboard de minikube](./img/minikube-dashboard.png)
 
+- Para verificar que `ingress` esté funcionando correctamente deberemos seguir los siguientes pasos:
+  - Conocer la IP de minikube: 
+    ```
+    minikube -p practica-final ip
+    ```   
+  - Ejecutar:
+    ```
+    sudo nano /etc/host
+    ```
+    Colocamos el host del proyecto:  
+    ```
+    192.168.49.2 practica.local
+    ``` 
+  - En el navegador web, colocamos el siguiente enlace: http://practica.local
+    ![Laravel web](./img/app-web.png)  
+  - n el navegador web, colocamos el siguiente enlace: http://practica.local/adminer  
+    ![Adminer web](./img/adminer-web.png)
 
 ### Pasos a seguir para ArgoCD
 
