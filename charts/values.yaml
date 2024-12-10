@@ -14,6 +14,19 @@ php:
   port: 9000 # Cambiar el puerto para que coincida con default-configmap
   initcontainer:
     name: copy-data
+  resources:
+    requests:
+      cpu: "100m"       # CPU mínima solicitada
+      memory: "128Mi"   # Memoria mínima solicitada
+    limits:
+      cpu: "500m"       # CPU máxima permitida
+      memory: "256Mi"   # Memoria máxima permitida  
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  liveness:
+    initialDelaySeconds: 10
+    periodSeconds: 5 
   volumen:
     name: php-code
   pvc:
@@ -30,7 +43,16 @@ nginx:
     repository: nginx
     tag: latest
     pullPolicy: IfNotPresent
+  volumen:
+    name: nginx-config  
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 5    
   port: 80
+
+configmap:
+  nginx: nginx-main-config  
+  default: nginx-config
 
 ####################################################################################################
 # DATABASE (MySQL)
@@ -47,8 +69,13 @@ db:
     name: db-data
   pvc:
     name: mysql-data
-    storage: 5Gi # Modificar el tamaño del pvc en caso de ser necesario 
-  environment: {}
+    storage: 5Gi # Modificar el tamaño del pvc en caso de ser necesario
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 2
+    successThreshold: 1
+    failureThreshold: 3 
 
 ####################################################################################################
 # phpMyAdmin
@@ -115,6 +142,17 @@ ingress:
   name: ingress
   enabled: true
   host: practica.local
+
+####################################################################################################
+# HPA
+####################################################################################################  
+hpa:
+  name: hpa
+  minReplicas: 1
+  maxReplicas: 5
+  resource:
+    name: cpu
+    utilization: 50 # Escalar si el uso promedio de CPU supera el %
 
 ####################################################################################################
 # Prometheus and Grafana

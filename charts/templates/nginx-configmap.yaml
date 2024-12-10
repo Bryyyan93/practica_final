@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-nginx-main-config
+  name: "{{ .Release.Name }}-{{ .Values.configmap.nginx }}"
   labels:
     app: {{.Values.nginx.name }}
 data:
