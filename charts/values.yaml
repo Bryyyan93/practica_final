@@ -52,7 +52,7 @@ nginx:
 
 configmap:
   nginx: nginx-main-config  
-  default: nginx-config
+  default: default-config
 
 ####################################################################################################
 # DATABASE (MySQL)

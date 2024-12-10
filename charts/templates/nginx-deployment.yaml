@@ -21,7 +21,7 @@ spec:
         ports:
         - containerPort: {{ .Values.nginx.port }}
         volumeMounts:
-        - name: {{ .Values.nginx.volumen.name }}
+        - name: {{ .Values.nginx.volumen.name }} #nginx-config
           mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
         - name: nginx-main-config
@@ -41,8 +41,8 @@ spec:
       volumes:
       - name: {{ .Values.nginx.volumen.name }}
         configMap:
-          name: "{{ .Release.Name }}-{{ .Values.nginx.volumen.name }}"
-      - name: {{ .Values.configmap.nginx }}
+          name: "{{ .Release.Name }}-{{ .Values.configmap.default}}"
+      - name: nginx-main-config
         configMap:
           name: "{{ .Release.Name }}-{{ .Values.configmap.nginx }}"
       - name: project-code
