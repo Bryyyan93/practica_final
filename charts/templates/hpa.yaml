@@ -1,19 +1,19 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: "{{ .Release.Name }}-{{ .Values.php.name}}-{{.Values.hpa.name}}" 
+  name: "{{ .Release.Name }}-{{ .Values.php.name }}-{{.Values.hpa.name }}" 
   namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: "{{ .Release.Name }}-{{ .Values.php.name }}"  # El nombre del PHP deployment
-  minReplicas: {{ .Values.hpa.minReplicas}}
-  maxReplicas: {{ .Values.hpa.maxReplicas}}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:
   - type: Resource
     resource:
-      name: {{ .Values.hpa.resource.name}}
+      name: {{ .Values.hpa.resource.name }}
       target:
         type: Utilization
-        averageUtilization: {{ .Values.hpa.resource.utilization}}  # Escalar si el uso promedio de CPU supera el %
+        averageUtilization: {{ .Values.hpa.resource.utilization }}  # Escalar si el uso promedio de CPU supera el %
