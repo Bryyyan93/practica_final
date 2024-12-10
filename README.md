@@ -204,22 +204,22 @@ En este apartado se incluye el número minimo de replicas (2) para asegurar que 
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: "{{ .Release.Name }}-{{ .Values.php.name}}-{{.Values.hpa.name}}" 
+  name: "{{ .Release.Name }}-{{ .Values.php.name }}-{{ .Values.hpa.name }}" 
   namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: "{{ .Release.Name }}-{{ .Values.php.name }}"  # El nombre del PHP deployment
-  minReplicas: {{ .Values.hpa.minReplicas}}
-  maxReplicas: {{ .Values.hpa.maxReplicas}}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:
   - type: Resource
     resource:
-      name: {{ .Values.hpa.resource.name}}
+      name: {{ .Values.hpa.resource.name }}
       target:
         type: Utilization
-        averageUtilization: {{ .Values.hpa.resource.utilization}}  # Escalar si el uso promedio de CPU supera el %
+        averageUtilization: {{ .Values.hpa.resource.utilization }}  # Escalar si el uso promedio de CPU supera el %
 ```  
 Se ha incluido tambien en `php-deployment` unos requerimientos mínimos y máximos tanto de CPU como de memória.  
 ```
@@ -381,7 +381,7 @@ Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
     minikube start --kubernetes-version='v1.31.0' \
         --cpus=4 \
         --memory=4096 \
-        --addons="metrics-server,default-storageclass,storage-provisioner" \
+        --addons="metrics-server,default-storageclass,storage-provisioner,ingress" \
         -p practica-final
     ```  
     ![Creacion de cluster](./img/despliegue_minikube.png)
