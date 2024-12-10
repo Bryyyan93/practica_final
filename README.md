@@ -231,7 +231,6 @@ Se ha incluido tambien en `php-deployment` unos requerimientos mínimos y máxim
             cpu: {{ .Values.php.resources.limits.cpu }}         # CPU máxima permitida
             memory: {{ .Values.php.resources.limits.memory }}   # Memoria máxima permitida
 ```
-
 #### Exponer la Aplicación al exterior
 Para poder exponer la aplicación al exterior se usará manifiesto del tipo Ingress el cual llamamos `ingress.yaml`.
 La configuración es la siguiente:
@@ -266,17 +265,34 @@ spec:
 ```
 #### Comprobar despliegue
 Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos los siguientes comandos:  
-- Desplegar los charts: `helm upgrade --install my-app ./charts/`
-- Verificar el estado de los diferentes componentes desplegados:
-    - Verificar todos los estados: `kubectl get all`
+- Desplegar los charts: `helm upgrade --install my-app ./charts/`  
+- Verificar el estado de los diferentes componentes desplegados:  
+    - Verificar todos los estados: `kubectl get all`  
     ![Verificar estados](./img/ckeck-all-helm.png)  
-    - Verificar los `PVC`: `kubectl get pvc`
+    - Verificar los `PVC`: `kubectl get pvc`  
     ![Verificar PVC](./img/get-pvc.png)
-    - Verificar autoescalado: `kubectl get hpa -w` 
+    - Verificar autoescalado: `kubectl get hpa -w`  
     ![Autoescalado](./img/hpa_down.png)
-    - Tambien lo podemos confirmar desde el dashboard de minikube:
+    - Tambien lo podemos confirmar desde el dashboard de minikube:  
     ![Dashboard de minikube](./img/minikube-dashboard.png)
 
+- Para verificar que `ingress` esté funcionando correctamente deberemos seguir los siguientes pasos:
+  - Conocer la IP de minikube: 
+    ```
+    minikube -p practica-final ip
+    ```   
+  - Ejecutar:
+    ```
+    sudo nano /etc/host
+    ```
+    Colocamos el host del proyecto:  
+    ```
+    192.168.49.2 practica.local
+    ``` 
+  - En el navegador web, colocamos el siguiente enlace: http://practica.local
+    ![Laravel web](./img/app-web.png)  
+  - n el navegador web, colocamos el siguiente enlace: http://practica.local/adminer  
+    ![Adminer web](./img/adminer-web.png)
 
 ### Pasos a seguir para ArgoCD
 

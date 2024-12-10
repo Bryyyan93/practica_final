@@ -17,7 +17,6 @@ spec:
                 name: "{{ .Release.Name }}-{{ .Values.nginx.name }}"
                 port:
                   number: {{ .Values.nginx.port }}
-                 
           - path: /phpmyadmin
             pathType: Prefix
             backend:
