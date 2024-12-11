@@ -81,11 +81,12 @@ jobs:
         # Eliminar el JRE integrado
         rm -rf sonar-scanner/jre
     
-        # Configurar PATH y Java Home
-        export PATH="$(pwd)/sonar-scanner/bin:$PATH"
+        # Configurar PATH y JAVA_HOME
         export JAVA_HOME="/opt/hostedtoolcache/Java_Adopt_jdk/17.0.13-11/x64"
+        export PATH="$JAVA_HOME/bin:$(pwd)/sonar-scanner/bin:$PATH"
     
         # Verificar versión de Java usada por el SonarScanner
+        echo "JAVA_HOME is set to $JAVA_HOME"
         java -version
     
         # Ejecutar SonarScanner
