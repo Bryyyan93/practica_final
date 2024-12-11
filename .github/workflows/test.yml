@@ -16,6 +16,13 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
+     
+    # Configurar Java 17 para sonar
+    - name: Set up Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'adopt'        
     
     # Clonar repositorio
     - name: Cloning repository    
