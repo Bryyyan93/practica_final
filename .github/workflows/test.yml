@@ -19,7 +19,10 @@ jobs:
 
     # Clonar repositorio
     - name: Cloning repository    
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        # Disabling shallow clones is recommended for improving the relevancy of reporting
+        fetch-depth: 0
     
     # Crear archivo .env    
     - name: Copy .env
@@ -71,29 +74,10 @@ jobs:
         distribution: 'adopt'
 
     # Escaneo con SonarCloud
-    - name: Run SonarScanner with Java 17
-      run: |
-        # Descargar SonarScanner sin JRE integrado
-        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-        unzip sonar-scanner.zip
-        mv sonar-scanner-4.8.0.2856-linux sonar-scanner
-    
-        # Eliminar el JRE integrado
-        rm -rf sonar-scanner/jre
-    
-        # Configurar PATH y JAVA_HOME
-        export JAVA_HOME="/opt/hostedtoolcache/Java_Adopt_jdk/17.0.13-11/x64"
-        export PATH="$JAVA_HOME/bin:$(pwd)/sonar-scanner/bin:$PATH"
-    
-        # Verificar versión de Java usada por el SonarScanner
-        echo "JAVA_HOME is set to $JAVA_HOME"
-        java -version
-    
-        # Ejecutar SonarScanner
-        sonar-scanner \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.organization=bryyyan \
-          -Dsonar.projectKey=Bryyyan93_practica_final \
-          -Dsonar.php.coverage.reportPaths=coverage.xml
+    - name: Run SonarScanner
+      uses: sonarsource/sonarcloud-github-action@v4
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   
     
