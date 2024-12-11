@@ -64,13 +64,21 @@ jobs:
         name: test-results
         path: coverage.xml
 
-    # Escaneo con SonarCloud
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@v1.9
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}              
+    - name: Set up Java 17
+      uses: actions/setup-java@v3
       with:
-        args: >
+        java-version: '17'
+        distribution: 'adopt'
+
+    # Escaneo con SonarCloud
+    - name: Run SonarScanner with Java 17
+      run: |
+        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+        unzip sonar-scanner.zip
+        mv sonar-scanner-4.8.0.2856-linux sonar-scanner
+        export PATH="$PATH:$(pwd)/sonar-scanner/bin"
+        export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+        sonar-scanner \
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=bryyyan
           -Dsonar.projectKey=Bryyyan93_practica_final
