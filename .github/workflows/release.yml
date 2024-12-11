@@ -134,15 +134,21 @@ jobs:
           tags: |
             type=pep440,pattern={{version}},value=${{ env.VERSION }}
 
+      - name: Debug Docker metadata
+        run: |
+            echo "Tags: ${{ steps.meta.outputs.tags }}"
+            echo "Labels: ${{ steps.meta.outputs.labels }}"            
+
       - name: Build and push Docker image
         if: ${{ env.VERSION != '' }}
         uses: docker/build-push-action@v6
         with:
+          context: . 
+          platforms: linux/amd64,linux/arm64 
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64, linux/arm64
-          context: .
+          
 
       - name: Update helm chart files to latest version
         if: ${{ env.VERSION != '' }}
