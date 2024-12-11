@@ -67,15 +67,9 @@ jobs:
         name: test-results
         path: coverage.xml
 
-    - name: Set up Java 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-
     # Escaneo con SonarCloud
     - name: Run SonarScanner
-      uses: sonarsource/sonarcloud-github-action@v4
+      uses: SonarSource/sonarqube-scan-action@v4
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
