@@ -78,17 +78,21 @@ jobs:
         unzip sonar-scanner.zip
         mv sonar-scanner-4.8.0.2856-linux sonar-scanner
     
+        # Eliminar el JRE integrado
+        rm -rf sonar-scanner/jre
+    
         # Configurar PATH y Java Home
-        export PATH="$PATH:$(pwd)/sonar-scanner/bin"
+        export PATH="$(pwd)/sonar-scanner/bin:$PATH"
         export JAVA_HOME="/opt/hostedtoolcache/Java_Adopt_jdk/17.0.13-11/x64"
     
-        # Verificar versión de Java utilizada
+        # Verificar versión de Java usada por el SonarScanner
         java -version
     
-        # Ejecutar SonarScanner con Java 17
+        # Ejecutar SonarScanner
         sonar-scanner \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.organization=bryyyan \
           -Dsonar.projectKey=Bryyyan93_practica_final \
           -Dsonar.php.coverage.reportPaths=coverage.xml
+  
     
