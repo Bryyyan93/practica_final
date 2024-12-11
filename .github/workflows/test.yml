@@ -73,6 +73,9 @@ jobs:
 
     # Escaneo con SonarCloud
     - name: SonarCloud Scan
+      env:  
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        JAVA_HOME: /usr/lib/jvm/java-17-adoptopenjdk
       run: |
         curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
         unzip sonar-scanner.zip
