@@ -1,0 +1,72 @@
+name: test
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  tests:
+
+    runs-on: ubuntu-latest
+    # Configurar PHP
+    steps:
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+    
+    # Clonar repositorio
+    - name: Cloning repository    
+      uses: actions/checkout@v3
+    
+    # Crear archivo .env    
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+    
+    # Instalar dependencias
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
+    
+    # Generar clave de la aplicación  
+    - name: Generate key
+      run: php artisan key:generate
+    
+    # Dar permisos  
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+    
+    # Crear bade de datos  
+    - name: Create Database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+    
+    # Ejecutar pruebas unitarias con PHPUnit
+    - name: Execute tests (Unit and Feature tests) via PHPUnit
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: vendor/bin/phpunit
+    
+    # Ejecutar pruebas con cobertura 
+    - name: Generate coverage report
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: vendor/bin/phpunit
+
+    # Guardar resultados de las pruebas
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: coverage.xml
+
+    # Escaneo con SonarCloud
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@v1.9
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}              
+    

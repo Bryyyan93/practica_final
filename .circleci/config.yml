@@ -95,7 +95,7 @@ jobs:
 
 
 workflows:
-  version: 2.1
+  version: 2
   ci_cd_workflow:
     jobs:
       - test
