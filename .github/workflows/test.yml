@@ -1,5 +1,6 @@
 name: test
 
+# Este workflow se ejecutará automáticamente cuando haga un push o pull request en cualquier rama
 on:
   push:
     branches: [ "*" ]
@@ -15,7 +16,17 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'    
+        php-version: '8.2'
+        tools: composer # Instala Composer junto con PHP    
+
+    # Restaurar caché de Composer
+    - name: Cache Composer Dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor # Directorio donde Composer almacena dependencias
+        key: composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-        
 
     # Clonar repositorio
     - name: Cloning repository    
@@ -28,7 +39,7 @@ jobs:
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     
-    # Instalar dependencias
+    # Instalar dependencias de composer
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
     
@@ -45,6 +56,15 @@ jobs:
       run: |
         mkdir -p database
         touch database/database.sqlite
+       
+    # Restaurar caché de PHPUnit (si aplicable)
+    - name: Cache PHPUnit Results
+      uses: actions/cache@v3
+      with:
+        path: storage/testing # Ajusta según dónde almacenes archivos relacionados con pruebas
+        key: phpunit-${{ github.sha }}
+        restore-keys: |
+          phpunit-        
     
     # Ejecutar pruebas unitarias con PHPUnit
     - name: Execute tests (Unit and Feature tests) via PHPUnit
