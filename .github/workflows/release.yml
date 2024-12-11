@@ -188,9 +188,15 @@ jobs:
         run: |
           echo VERSION=${{ needs.semantic-release.outputs.version }} >> $GITHUB_ENV  
 
+      - name: List uploaded artifacts
+        run: |
+          echo "Checking uploaded artifacts:"
+          ls -l /tmp          
+
       - name: Clean version for artifacts
         run: |
           CLEAN_VERSION=$(echo "${{ needs.semantic-release.outputs.version }}" | sed 's/-on-default-channel//')
+          echo "CLEAN_VERSION=${{ env.CLEAN_VERSION }}"
           echo "CLEAN_VERSION=${CLEAN_VERSION}" >> $GITHUB_ENV
                   
       # Download helm chart package to upload as release asset
