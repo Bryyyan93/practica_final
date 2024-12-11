@@ -64,8 +64,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npx semantic-release --debug | tee semantic_release_output.txt
-          VERSION=$(grep -oP '(?<=Published release ).*' semantic_release_output.txt)
-          echo "$VERSION" > semantic_release_version.txt
+
+          # Si Semantic Release no genera una nueva versión, capturamos la última versión existente
+          if grep -q "There are no relevant changes, so no new version is released" semantic_release_output.txt; then
+            echo "No new version generated. Fetching the latest version tag."
+            VERSION=$(git describe --tags --abbrev=0)
+          else
+            # Extrae la versión publicada por semantic-release
+            VERSION=$(grep -oP '(?<=Published release ).*' semantic_release_output.txt)
+            echo "$VERSION" > semantic_release_version.txt
+          fi  
 
       - name: Debug semantic_release_version.txt
         run: |
