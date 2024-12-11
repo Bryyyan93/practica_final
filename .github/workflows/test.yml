@@ -62,7 +62,7 @@ jobs:
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
-      run: vendor/bin/phpunit
+      run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
     # Guardar resultados de las pruebas
     - name: Upload Test Results
@@ -73,7 +73,14 @@ jobs:
 
     # Escaneo con SonarCloud
     - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@v1.9
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}              
-    
+      run: |
+        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+        unzip sonar-scanner.zip
+        mv sonar-scanner-4.8.0.2856-linux sonar-scanner
+        export PATH="$PATH:$(pwd)/sonar-scanner/bin"
+        sonar-scanner \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.organization=bryyyan \
+          -Dsonar.projectKey=Bryyyan93_practica_final \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.php.coverage.reportPaths=coverage.xml 
