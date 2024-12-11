@@ -132,9 +132,9 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/${{ steps.repo-basename.outputs.value }}
             ghcr.io/${{ github.repository }}
           tags: |
-            #${{ secrets.DOCKER_USERNAME }}/${{ steps.repo-basename.outputs.value }}:${{ env.VERSION }}
-            #ghcr.io/${{ github.repository }}:${{ env.VERSION }}
-            type=semver,pattern={{version}},value=${{ env.VERSION }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ steps.repo-basename.outputs.value }}:${{ env.VERSION }}
+            ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+            #type=semver,pattern={{version}},value=${{ env.VERSION }}
 
       - name: Debug Docker metadata
         run: |
