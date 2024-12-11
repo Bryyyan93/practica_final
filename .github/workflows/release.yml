@@ -30,6 +30,15 @@ jobs:
       # Obtener el historial completo del repositorio  
       - name: Unshallow
         run: git fetch --prune --unshallow  
+     
+      # Restaurar caché para yq y helm-docs
+      - name: Restore Cache for Tools
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin
+          key: tools-cache-${{ runner.os }}-yq-${{ env.YQ_VERSION }}-helm-docs-${{ env.HELM_DOCS_VERSION }}
+          restore-keys: |
+            tools-cache-${{ runner.os }}-        
 
       # Instalar jq, una utilidad para manipular JSON desde la línea de comandos  
       - name: Install jq
