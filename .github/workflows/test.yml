@@ -15,15 +15,8 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
-     
-    # Configurar Java 17 para sonar
-    - name: Set up Java 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'adopt'        
-    
+        php-version: '8.2'    
+
     # Clonar repositorio
     - name: Cloning repository    
       uses: actions/checkout@v3
@@ -73,17 +66,12 @@ jobs:
 
     # Escaneo con SonarCloud
     - name: SonarCloud Scan
-      env:  
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        JAVA_HOME: /usr/lib/jvm/java-17-adoptopenjdk
-      run: |
-        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-        unzip sonar-scanner.zip
-        mv sonar-scanner-4.8.0.2856-linux sonar-scanner
-        export PATH="$PATH:$(pwd)/sonar-scanner/bin"
-        sonar-scanner \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.organization=bryyyan \
-          -Dsonar.projectKey=Bryyyan93_practica_final \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.php.coverage.reportPaths=coverage.xml 
+      uses: sonarsource/sonarcloud-github-action@v1.9
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}              
+      with:
+        args: >
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.organization=bryyyan
+          -Dsonar.projectKey=Bryyyan93_practica_final
+          -Dsonar.php.coverage.reportPaths=coverage.xml    
