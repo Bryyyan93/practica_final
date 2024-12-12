@@ -22,11 +22,11 @@ php:
       cpu: "500m"       # CPU máxima permitida
       memory: "256Mi"   # Memoria máxima permitida  
   readiness:
-    initialDelaySeconds: 5
-    periodSeconds: 5
+    initialDelaySeconds: 30
+    periodSeconds: 15
   liveness:
-    initialDelaySeconds: 10
-    periodSeconds: 5 
+    initialDelaySeconds: 45
+    periodSeconds: 15 
   volumen:
     name: php-code
   pvc:
@@ -46,7 +46,7 @@ nginx:
   volumen:
     name: nginx-config  
   readiness:
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 5    
   port: 80
 
