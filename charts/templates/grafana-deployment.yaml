@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "charts.fullname" . }}-grafana"
+  labels:
+    {{- include "charts.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ include "charts.name" . }}"
+      component: grafana
+  template:
+    metadata:
+      labels:
+        app: "{{ include "charts.name" . }}"
+        component: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+          volumeMounts:
+            - name: grafana-config
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yml
+              subPath: datasource.yml
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-config
+          configMap:
+            name: "{{ include "charts.fullname" . }}-grafana-datasource"
+        - name: grafana-dashboards
+          configMap:
+            name: "{{ include "charts.fullname" . }}-grafana-dashboards"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "charts.fullname" . }}-grafana"
+  labels:
+    {{- include "charts.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: "{{ include "charts.name" . }}"
+    component: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

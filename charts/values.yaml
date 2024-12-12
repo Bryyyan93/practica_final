@@ -144,6 +144,9 @@ ingress:
   name: ingress
   enabled: true
   host: practica.local
+  paths:
+    grafana: /grafana
+    prometheus: /prometheus
 
 ####################################################################################################
 # HPA
@@ -157,32 +160,11 @@ hpa:
     utilization: 50 # Escalar si el uso promedio de CPU supera el %
 
 ####################################################################################################
-# Prometheus and Grafana
-####################################################################################################
-kube-prometheus-stack:
-  grafana:
-    adminPassword: "admin-password"
-    service:
-      type: ClusterIP
-    dashboardsConfigMaps: {}
-    datasources:
-      datasources.yaml:
-        apiVersion: 1
-        datasources:
-          - name: Prometheus
-            type: prometheus
-            url: http://laravel-mysql-kube-prometh-prometheus.laravel-mysql.svc.cluster.local:9090
-            access: proxy
-            isDefault: true
-            jsonData:
-              httpMethod: POST
-              timeInterval: 30s
-
-  prometheus:
-    service:
-      type: ClusterIP
-
-  alertmanager:
-    service:
-      type: ClusterIP
-
+# Prometheus-Grafana
+#################################################################################################### 
+prometheus:
+  enabled: true
+grafana:
+  enabled: true
+nodeExporter:
+  enabled: true

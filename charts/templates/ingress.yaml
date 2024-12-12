@@ -31,3 +31,17 @@ spec:
                 name: "{{ .Release.Name }}-{{ .Values.adminer.name }}"
                 port:
                   number: {{ .Values.adminer.port }}
+          - path: /grafana
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Release.Name }}-grafana"
+                port:
+                  number: 3000
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ .Release.Name }}-prometheus"
+                port:
+                  number: 9090
