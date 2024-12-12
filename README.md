@@ -263,6 +263,55 @@ spec:
                 port:
                   number: {{ .Values.adminer.port }}
 ```
+#### Gestión de Secrets
+Dado que no es muy seguro mantener los secretos directamente en el repositorio se ha implementado `Sealed Secrets`. Es una solución de Bitnami que permite cifrar secretos con una clave pública del clúster. Los secretos cifrados se almacenan en el repositorio y se descifran en el clúster.  
+
+Para implementar se sigue los siguientes pasos:  
+
+- Instalar el controlador de `Sealed Secrets` en el clúster.
+  ```
+  kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.20.5/controller.yaml
+  ```  
+  - Verifica que el controller esté en funcionamiento:
+    ```
+    kubectl get pods -n kube-system | grep sealed-secrets
+
+    ```  
+- Instalar la CLI de Sealed Secrets (`kubeseal`)
+  ```
+  KUBESEAL_VERSION='0.25.0'
+  curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION:?}/kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz"
+  tar -xvzf kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz kubeseal
+  sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+  ```
+  - Verifica que esté instalado correctamente:  
+    ```
+    kubeseal --version
+
+    ```  
+- Crear un archivo de secretos no cifrado, como este:
+  ```
+  apiVersion: v1
+  kind: Secret
+  metadata:
+  name: my-db-secret
+  namespace: default
+  data:
+  MYSQL_ROOT_PASSWORD: bXktc2VjcmV0LXJvb3Q=  # Base64 de "my-secret-root"
+  MYSQL_DATABASE: bXktZGF0YWJhc2U=           # Base64 de "my-database"
+  MYSQL_USER: bXktdXNlcg==                   # Base64 de "my-user"
+  MYSQL_PASSWORD: bXktcGFzc3dvcmQ=           # Base64 de "my-password"
+  ```      
+- Cifrar el archivo usando Sealed Secrets
+  ```
+  kubeseal --controller-namespace kube-system --controller-name sealed-secrets-controller \  
+    --format yaml < db-secret.yaml > db-sealed-secrets.yaml
+
+  ```
+
+
+
+
 #### Comprobar despliegue
 Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos los siguientes comandos:  
 - Desplegar los charts: `helm upgrade --install my-app ./charts/`  
