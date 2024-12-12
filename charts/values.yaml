@@ -75,7 +75,9 @@ db:
     periodSeconds: 5
     timeoutSeconds: 2
     successThreshold: 1
-    failureThreshold: 3 
+    failureThreshold: 3
+  secrets:
+    name: secret   
 
 ####################################################################################################
 # phpMyAdmin
