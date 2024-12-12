@@ -16,11 +16,11 @@ spec:
         - name: db.credentials.rootPassword
           value: root
         - name: db.credentials.database
-          value: refactorial
+          value: refactorian
         - name: db.credentials.user
-          value: refactorial
+          value: refactorian
         - name: db.credentials.password
-          value: refactorial
+          value: refactorian
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: laravel-mysql
