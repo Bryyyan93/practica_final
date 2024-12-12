@@ -308,8 +308,56 @@ Para implementar se sigue los siguientes pasos:
     --format yaml < db-secret.yaml > db-sealed-secrets.yaml
 
   ```
+- Se obtiene un manifiesto que, despues de parametrizar, obtenemos:
+```
+    ---
+    apiVersion: bitnami.com/v1alpha1
+    kind: SealedSecret
+    metadata:
+      creationTimestamp: null
+      name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+      namespace: default
+      labels:
+        app: {{ .Values.db.name }}
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        "helm.sh/hook": "pre-install, pre-upgrade"
+        "helm.sh/hook-weight": "-1"
+        meta.helm.sh/release-name: {{ .Release.Name }}
+        meta.helm.sh/release-namespace: {{ .Release.Namespace }}  
+    spec:
+      encryptedData:
+        MYSQL_DATABASE: AgBlIew4XqOmzi+zvv4HeSbWaS7VSqoNaCJSVb1Bmw4f0rRyKVBGKInYdxw8i4hzNckhRpPaeLDrXTRuEKhPTeNc4gj31SoAWf0ICGE8Zs3dw1B64+IVSoxZWKGihMdp74ED37+9YQW+bk3YSDfyYEAwdDsfIs0TKH3YfGTburQ5sS1X4+vXGAA3qCfWSNDSMmN4EnSUBHgbNxSGFVP9gccSt3Znvs/PJhbxU8Cwu0HZgKtsY7r2fj3ezTVYcjo3ClAHb3yXqvq7xztzLJ7Q4XeT3mF514/toxTArdWSf9RM25ougHFxDsYcswVcMxZHmlQkMzaW3e120KtJV3S0aetfkkI455KtSagR8KMesnq2zfc1wkTmjVN6i7BHCSUE9sxPavzDj1ejMUZZWiPW4fD3OUSOMgeifUFVD+d8QQU10webkXxPck0ZowpVyiBfd93VqUkdeX5ioqRs7MAYq0V1htiEF0ducERVfLXG2TAdYzpmynjra7e4O8LdumWk8FyFRugBBB+MIgJctzL+CgQG2EENxqOARG5YbEgElvoZrLn+4X/+O/f6Jixm0PxiyiUKjCuixjmJP3uvg7xfewewG0ZDS3zO/fmzYq/JuKduhr8KriaHn2poGZl5kkUq3LfLFpXis4QdKKQE1BMtb4ribZL+g2lsYV9bkOdsmfYezbk5DXBKcGK9c4vwGIkpjw4dmU8J7eCjniRwnQ==
+        MYSQL_PASSWORD: AgAldJGU0/VKnQBPR8dANcdznQNG2/0dvBbW0mwKTlyBZR/qNaWP6z20RI/dGExwfS919xWHxyGj5F3srVoYykHQqGM+23hOwzgOrg6i8lNG55t8nQgh+wjHbIpMnc2bjz+nRFtKaSIhXb9tgFrNuqwsrXngvX0DOJp9a4QcwJKrgtbRj7QnfTib+mHQmlLiIcgJuwMqhmB2hUBugiXGJPXfVMyQk+6GY2694dIfM4EmHCkXenmnZ4OoS/AU75q3GR89RHrRjKj8hV66Cbi9Qi3Dn+x4To5PzCA8tezIA1Y/TZMc73k6kFQg9AjYaO+RpTTLAvLwocAHkmVfbir8YW+PT6ez4jeXEgIy4vXttE5mVEV6g6ioYm0MYmfOLDibdxfaI/CZ1EL4IB7liIE4ue26NLzWMA0PesgBAS8Q1twpdhTHh3s8uTXQTq+voy0NlNbv1lN0TUqIRZFL+PXmzeojEiCo+VAGnxYTtQcvIRnhVFWFO50rib8NnpJkIz1C3NhlJGls27JVN1Ltdk8jOomr3AR1+ILTbkqARN2V2VgNBcRs41SayTDYHWSiNEHO+Oax4cTN76ss3IyeFDyQ4ffXKtsAvL0K1Xd+ljvDam4zOb4gR1RU0kmxYawnFC2Ri0pyZyv94xfKtS4wZ6i+6iQcXo2C41d6/WqE2r9cbKq3n/ml6nGmHFdnwFGFr/NECyRMN2Ud0/mtsIIPPA==
+        MYSQL_ROOT_PASSWORD: AgCfSSwcLD916vYmHlhHUVEXTsoR5koYaZNAvNKdIFEtVtxnM/r725c8vTJDbPgL1Vjf4S8a1GVV83/ruBGCRG/9UBiUnB6nFDopj67sLv/xz1REhGKQaZqYLwxFJitPnNkL00RwBP4epVdGAG1fjO4q6zoUbinDsU8pt7/Y83mYvhJq7n/xeEtKQLxDQhgsiZcOwiOeIvyT1fZTZdPuH2ado5VcgwOy8UKYbz07rn+/rRaAypKvsdT8ZSDfPYEe3YDa20RyqUpKyNFXH54YXQy76LTUxibeDP6EOSU9CN3hev5O3BGwMqRR/ERbx0yiiysYaxfOiqVm5A58T6jXgKRoYZXk8rXD0vweUGnb0EkQeZfQNGkc1QT6fG/o7pM7K4H3woA1qyvCUC2rMTgJ+50yahdPoaoSX2tooufFfEA+CzOBoZFo1CKccsQRrvtDxGaI6zL6otuYxIcU4rtPEakPOYQ1Xs+QS/oJ5plFrALkpBPFGtdhZdnv7XPDPVXkmJpxQoOXM+JfK78TgZT0eNPSrQ3WIY0VqHlRG2fJnuDlQil1aXP1uV62t9R37Lhtb2/A96UPRjRuoURBoKW/WLC6V8hzNP3e3sjRCLpWkQ0LhFnyiWAen+Pjvy0tKg6BksMjGXKzzKsO4c1AXRRxyU81HEOOc0+HmkZTkmoKxtCnz5fnJ2Y1cV43dRl8PwqO63B5WY3C
+        MYSQL_USER: AgBN9zjXTsaD5Ekr/fr8odyHUvyQwSs8vgfayjtDt0ZODD4VuxyHBIot2Yx+uVtBRT15OGtYEAy4CR5GtBko00hwvdcS64fHFsSdx4ttMB6/TMfzjeYZDoTm01bLdUiWrus2thukx2TXQkWxnf4X/tehzo9wlE/mh4V0loV6e1x3llL9U3FLkp9/Fm5H752dhhYjQB2uIWxMeWhaJK1+wAEa2zJGZ8LLkbjVAjWLBE1XeMp+9IX9ssvvMDARqPJZfcEpLMmHtTY8dxSRRUJlL5gMCVckMhuD1T6+wRC2rVjZKx0bvmFT2ZDvnDfk3EXL15PoBzJGicHEmACFW5mja84/n7DCpUNpTQg9Ub1CtzhtGWljeHGVq+/lKFXf1vT59eEvbCl6bGg7EQkHHL8z0KFibfQjeMOCNBQvV+Dmx4qvChGTllHzuZugXlVsXxCr+Hw0W3onxv4RA9L61AQip5k1KBstq6dJCKD8RcZOZbL/Gj3QjwR8Sy5s84oQlYJincjtsbhRvPqi5NducvHpgGAOx3F2BGAnTpSjGDbUx6C5JTGYDVmWpZDYUKiSIE76wb3GJTEr3n3FGdWGKWCv42X9Duql0hcPnWuDIKOT/bxSPwFj22PKsqJM4gMQI2jxptmSM57vuop5vTHkIF84ELwHxPcy6x7w62GLYD26MFH/yXd6ZC+ZzpQ7S9tjHkCyjup9hm+6jTz05haUPg==
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: {{ .Values.db.name }}
+            app.kubernetes.io/managed-by: Helm
+          name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+          namespace: {{ .Release.Namespace }}
+          annotations:
+            "helm.sh/hook": "pre-install, pre-upgrade"
+            "helm.sh/hook-weight": "-1"
+            meta.helm.sh/release-name: {{ .Release.Name }}
+            meta.helm.sh/release-namespace: {{ .Release.Namespace }}
 
+        type: Opaque
+    ```  
 
+Al desplegar con Helm se ejecuta sin problemas pero al ejecutar desde Argo presenta problemas, puesto que Argo no puede no llega a desencriptar. Por tanto, se opta una poner los datos de manera dinámica:
+
+Se hacen los cambios oportunos y se despliega de esta manera:
+```
+helm upgrade --install my-app ./charts/ \
+  --set db.credentials.rootPassword=root \
+  --set db.credentials.database=refactorian \
+  --set db.credentials.user=refactorian \
+  --set db.credentials.password=refactorian
+```  
 
 
 #### Comprobar despliegue

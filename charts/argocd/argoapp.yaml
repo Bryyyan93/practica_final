@@ -12,6 +12,15 @@ spec:
     helm:
       valueFiles:
         - values.yaml
+      parameters:
+        - name: db.credentials.rootPassword
+          value: root
+        - name: db.credentials.database
+          value: refactorial
+        - name: db.credentials.user
+          value: refactorial
+        - name: db.credentials.password
+          value: refactorial
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: laravel-mysql
