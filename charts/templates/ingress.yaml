@@ -35,13 +35,13 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: "{{ .Release.Name }}-grafana"
+                name: "{{ include "charts.fullname" . }}-grafana"
                 port:
                   number: 3000
           - path: /prometheus
             pathType: Prefix
             backend:
               service:
-                name: "{{ .Release.Name }}-prometheus"
+                name: "{{ include "charts.fullname" . }}-prometheus"
                 port:
                   number: 9090

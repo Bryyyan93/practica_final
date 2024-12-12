@@ -12,5 +12,5 @@ data:
         type: prometheus
         url: http://{{ include "charts.fullname" . }}-prometheus:9090
         access: proxy
-        isDefault: false
+        isDefault: true
 

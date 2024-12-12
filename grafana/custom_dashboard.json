@@ -68,7 +68,7 @@
       },
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{namespace=\"laravel-mysql\"}",
+          "expr": "container_memory_usage_bytes{namespace=\"default\"}",
           "legendFormat": "Memory Usage {{pod}}",
           "refId": "A"
         }
@@ -106,7 +106,7 @@
       },
       "targets": [
         {
-          "expr": "container_cpu_usage_seconds_total{namespace=\"laravel-mysql\"}",
+          "expr": "container_cpu_usage_seconds_total{namespace=\"default\"}",
           "legendFormat": "CPU Usage {{pod}}",
           "refId": "A"
         }
@@ -144,7 +144,7 @@
       },
       "targets": [
         {
-          "expr": "kube_pod_container_resource_requests{namespace=\"laravel-mysql\", resource=\"memory\"}",
+          "expr": "kube_pod_container_resource_requests{namespace=\"default\", resource=\"memory\"}",
           "legendFormat": "Memory Requests {{pod}}",
           "refId": "A"
         }
@@ -182,7 +182,7 @@
       },
       "targets": [
         {
-          "expr": "kube_pod_container_resource_limits{namespace=\"laravel-mysql\", resource=\"cpu\"}",
+          "expr": "kube_pod_container_resource_limits{namespace=\"default\", resource=\"cpu\"}",
           "legendFormat": "CPU Limits {{pod}}",
           "refId": "A"
         }
