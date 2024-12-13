@@ -6,6 +6,7 @@
 # PHP
 ####################################################################################################
 php:
+  namespace: laravel-mysql
   name: php
   image:
     repository: bryyyan/practica-final

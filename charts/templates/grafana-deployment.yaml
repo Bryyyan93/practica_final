@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ include "charts.fullname" . }}-grafana"
+  namespace: {{ .Values.php.namespace }}
   labels:
     {{- include "charts.labels" . | nindent 4 }}
 spec:
@@ -26,6 +27,8 @@ spec:
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
+            - name: GF_SERVER_ROOT_URL
+              value: "%(protocol)s://%(domain)s/grafana/"  
           volumeMounts:
             - name: grafana-config
               mountPath: /etc/grafana/provisioning/datasources/datasource.yml
@@ -39,6 +42,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "{{ include "charts.fullname" . }}-grafana"
+  namespace: {{ .Values.php.namespace }}
   labels:
     {{- include "charts.labels" . | nindent 4 }}
 spec:

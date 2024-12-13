@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: "{{ include "charts.fullname" . }}-prometheus-config"
+  namespace: {{ .Values.php.namespace }}
   labels:
     {{- include "charts.labels" . | nindent 4 }}
 data:

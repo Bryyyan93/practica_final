@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: "{{ include "charts.fullname" . }}-node-exporter"
+  namespace: {{ .Values.php.namespace }}
   labels:
     {{- include "charts.labels" . | nindent 4 }}
 spec:

@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: "{{ .Release.Name }}-{{ .Values.ingress.name }}"
+  namespace: {{ .Values.php.namespace }}
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
@@ -31,8 +32,8 @@ spec:
                 name: "{{ .Release.Name }}-{{ .Values.adminer.name }}"
                 port:
                   number: {{ .Values.adminer.port }}
-          - path: /grafana
-            pathType: Prefix
+          - path: /grafana(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: "{{ include "charts.fullname" . }}-grafana"
