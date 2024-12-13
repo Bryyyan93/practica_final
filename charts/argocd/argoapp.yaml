@@ -7,11 +7,20 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/Bryyyan93/practica_final.git'
-    targetRevision: develop-rev
+    targetRevision: develop
     path: charts
     helm:
       valueFiles:
         - values.yaml
+      parameters:
+        - name: db.credentials.rootPassword
+          value: root
+        - name: db.credentials.database
+          value: refactorian
+        - name: db.credentials.user
+          value: refactorian
+        - name: db.credentials.password
+          value: refactorian
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: laravel-mysql
