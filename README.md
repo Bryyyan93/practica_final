@@ -371,7 +371,9 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
 - Desplegar los charts: `helm upgrade --install my-app ./charts/`  
 - Verificar el estado de los diferentes componentes desplegados:  
     - Verificar todos los estados: `kubectl get all`  
-    ![Verificar estados](./img/ckeck-all-helm.png)  
+    
+    ![Verificar estados](./img/get-all-despliegue.png)  
+
     - Verificar los `PVC`: `kubectl get pvc`  
     ![Verificar PVC](./img/get-pvc.png)
     - Verificar autoescalado: `kubectl get hpa -w`  
@@ -407,7 +409,7 @@ http://localhost:8080
 
  ![Acceso PhpMyAdmin](./img/accesoPhpmyAdmin.png)
 
- 
+
   - Acceso a Prometheus: Realizar un port-forward para acceder a la interfaz.
 ```
 kubectl port-forward -n <nombre-namespace> svc/<nombre-svc-prometheus> 9090:9090
@@ -543,6 +545,15 @@ spec:
 kubectl port-forward -n <nombre-namespace> svc/<nombre-svc-prometheus> 9090:9090
 ```
 Luego, acceder desde el navegador a: http://localhost:9090.
+
+![Éxito Prometheus1](./img/prometheus1.png)
+
+![Éxito Prometheus1](./img/prometheus2.png)
+
+![Éxito Prometheus1](./img/prometheus3.png)
+
+![Éxito Prometheus1](./img/prometheus4.png)
+
 - Grafana: Realizar un port-forward para acceder a la interfaz de Grafana.
 ```
 kubectl port-forward -n <nombre-namespace> <nombre-pod-grafana> 3000:3000
@@ -562,17 +573,9 @@ Contraseña: prom-operator
 5. Sube el archivo  [json de grafana ](grafana/custom_dashboard.json)
 6. Guarda y visualiza el dashboard.
 
-Con esta configuración, se obtiene monitorización en tiempo real de métricas críticas como uso de memoria, uso de CPU y peticiones realizadas por los pods. Este setup asegura una gestión eficiente del clúster y la aplicación, permitiendo un rápido diagnóstico en caso de problemas.
-
-![Éxito Prometheus1](./img/prometheus1.png)
-
-![Éxito Prometheus1](./img/prometheus2.png)
-
-![Éxito Prometheus1](./img/prometheus3.png)
-
-![Éxito Prometheus1](./img/prometheus4.png)
-
 ![Éxito Grafana](./img/grafanaExito.png)
+
+Con esta configuración, se obtiene monitorización en tiempo real de métricas críticas como uso de memoria, uso de CPU y peticiones realizadas por los pods. Este setup asegura una gestión eficiente del clúster y la aplicación, permitiendo un rápido diagnóstico en caso de problemas.
 
 ### Pasos a seguir para ArgoCD
 
