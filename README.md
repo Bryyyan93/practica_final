@@ -29,28 +29,33 @@ Los charts de Helm tiene la siguiente estructura:
 ```
 Helm Charts
   ├── templates/
-  │   ├── _helpers.tpl           # Funciones y helpers reutilizables
-  │   ├── adminer-deployment.yaml  # Deployment para Adminer
-  │   ├── adminer-service.yaml     # Service para Adminer
-  │   ├── db-statefulset.yaml      # statefulset para la base de datos
-  │   ├── db-pvc.yaml              # Persistent Volume Claim para la base de datos
-  │   ├── db-service.yaml          # Service para la base de datos
-  │   ├── default-configmap.yaml   # ConfigMap por defecto
-  │   ├── ingress.yaml             # Configuración de Ingress
-  │   ├── myadmin-deployment.yaml  # Deployment para MyAdmin
-  │   ├── myadmin-service.yaml     # Service para MyAdmin
-  │   ├── nginx-configmap.yaml     # ConfigMap para NGINX
-  │   ├── nginx-deployment.yaml    # Deployment para NGINX
-  │   ├── nginx-service.yaml       # Service para NGINX
-  │   ├── php-deployment.yaml      # Deployment para PHP
-  │   ├── php-pvc.yaml             # Persistent Volume Claim para PHP
-  │   ├── php-service.yaml         # Service para PHP
-  │   ├── redis-deployment.yaml    # Deployment para Redis
-  │   ├── redis-pvc.yaml           # Persistent Volume Claim para Redis
-  │   ├── redis-service.yaml       # Service para Redis
-  ├── .helmignore                  # Archivos ignorados por Helm
-  ├── Chart.yaml                   # Metadatos del Helm Chart
-  ├── values.yaml                  # Valores por defecto del Helm Chart
+  │   ├── _helpers.tpl              # Funciones y helpers reutilizables
+  │   ├── adminer-deployment.yaml   # Deployment para Adminer
+  │   ├── adminer-service.yaml      # Service para Adminer
+  │   ├── db-StatefulSet.yaml       # StatefulSet para la base de datos
+  │   ├── db-pvc.yaml               # PVC para BBDD
+  │   ├── db-service.yaml           # Service para la base de datos
+  │   ├── db-secret.yaml            # Secret para la BBDD
+  │   ├── default-configmap.yaml    # ConfigMap por defecto
+  │   ├── grafana-configmap.yaml    # ConfigMap para Grafana
+  │   ├── grafana-deployment.yaml   # Deployment para Grafana
+  │   ├── hpa.yaml                  # HorizontalPodAutoscaler para PHP
+  │   ├── ingress.yaml              # Configuración de Ingress
+  │   ├── myadmin-deployment.yaml   # Deployment para MyAdmin
+  │   ├── myadmin-service.yaml      # Service para MyAdmin
+  │   ├── nginx-configmap.yaml      # ConfigMap para NGINX
+  │   ├── nginx-deployment.yaml     # Deployment para NGINX
+  │   ├── nginx-service.yaml        # Service para NGINX
+  │   ├── php-deployment.yaml       # Deployment para PHP
+  │   ├── php-pvc.yaml              # Persistent Volume Claim para PHP
+  │   ├── php-service.yaml          # Service para PHP
+  │   ├── prometheus-configmap.yaml    # ConfigMap para Prometheus
+  │   ├── prometheus-deployment.yaml   # Deployment para Prometheus
+  │   ├── prometheus-node-exporter-daemonset.yaml  # DaemonSet 
+  ├── .helmignore                   # Archivos ignorados por Helm
+  ├── Chart.lock  # Archivo de bloqueo para dependencias del Helm Chart
+  ├── Chart.yaml                    # Metadatos del Helm Chart
+  ├── values.yaml                   # Valores por defecto del Helm Chart
 ```    
 #### PHP Deployment
 Define un `Deployment` para un contenedor PHP, incluyendo la inicialización del entorno (mediante `initContainers`) y la ejecución del servicio principal en los `containers`.  
@@ -240,7 +245,7 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-        # Añador los paths para los diferentes servicios
+        # Añadir los paths para los diferentes servicios
           - path: /
             pathType: Prefix
             backend:
@@ -346,7 +351,8 @@ Para implementar se sigue los siguientes pasos:
             meta.helm.sh/release-namespace: {{ .Release.Namespace }}
 
         type: Opaque
-    ```  
+``` 
+
 
 Al desplegar con Helm se ejecuta sin problemas pero al ejecutar desde Argo presenta problemas, puesto que Argo no puede no llega a desencriptar. Por tanto, se opta una poner los datos de manera dinámica:
 
@@ -391,6 +397,183 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
   - n el navegador web, colocamos el siguiente enlace: http://practica.local/adminer  
     ![Adminer web](./img/adminer-web.png)
 
+- Acceso mediante Port-Forward: Para acceder a phpMyAdmin, Prometheus y Grafana, es necesario realizar un port-forward desde la terminal.
+  - Acceso a phpMyAdmin Ejecutar el siguiente comando en la terminal:
+```
+kubectl port-forward svc/<nombre-svc-prometheus> -n <nombre-namespace> 8080:80
+```
+Una vez ejecutado, abrir el navegador web y acceder a:
+http://localhost:8080
+
+ ![Acceso PhpMyAdmin](./img/accesoPhpmyAdmin.png)
+
+ 
+  - Acceso a Prometheus: Realizar un port-forward para acceder a la interfaz.
+```
+kubectl port-forward -n <nombre-namespace> svc/<nombre-svc-prometheus> 9090:9090
+```
+Luego, acceder desde el navegador a: http://localhost:9090.
+- Grafana: Realizar un port-forward para acceder a la interfaz de Grafana.
+```
+kubectl port-forward -n <nombre-namespace> <nombre-pod-grafana> 3000:3000
+```
+Luego, acceder desde el navegador a: http://localhost:3000.
+
+
+### Monitorización con Prometheus y Grafana
+
+Para implementar la monitorización del clúster y de la aplicación, hemos utilizado Prometheus como herramienta de scraping de métricas y Grafana para la visualización de estas métricas. A continuación, se detalla cómo se han implementado y configurado ambos sistemas.
+
+#### Manifiestos para Prometheus
+  1. Despliegue de Prometheus: Se utiliza el manifiesto prometheus-deployment.yaml, que define un Deployment para Prometheus con una réplica y un volumen para la configuración.
+
+ ```
+ apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+  ```
+  2. Configuración de Prometheus: Se usa el ConfigMap definido en el manifiesto prometheus-configmap.yaml para configurar los scrape_configs de Prometheus. Por ejemplo, en este caso, se recopilan métricas de node-exporter.
+  ```
+  scrape_configs:
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['laravel-mysql-charts-node-exporter.default.svc.cluster.local:9100']
+
+  ```
+  3. Exportador de métricas del nodo: Para recopilar métricas del sistema operativo, se implementa un DaemonSet con Node Exporter.
+```
+  apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      containers:
+        - name: node-exporter
+          image: quay.io/prometheus/node-exporter:v1.7.0
+          ports:
+            - containerPort: 9100
+```
+  4. Servicio de Prometheus: Para exponer Prometheus dentro del clúster, se utiliza un Service tipo ClusterIP.
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  ports:
+    - port: 9090
+      targetPort: 9090
+```
+#### Manifiestos para Grafana
+  1. Despliegue de Grafana: El manifiesto grafana-deployment.yaml configura Grafana con un usuario y contraseña predeterminados, y un volumen que almacena la configuración del origen de datos.
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+          ports:
+            - containerPort: 3000
+
+```
+  2. Configuración del origen de datos en Grafana: Se utiliza un ConfigMap llamado grafana-datasource.yaml que conecta Grafana con Prometheus como origen de datos.
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource
+  namespace: monitoring
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus:9090
+        access: proxy
+
+```
+  3. Servicio de Grafana: El manifiesto grafana-service.yaml expone Grafana dentro del clúster.
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+```
+#### Acceder a las interfaces
+- Prometheus: Realizar un port-forward para acceder a la interfaz.
+```
+kubectl port-forward -n <nombre-namespace> svc/<nombre-svc-prometheus> 9090:9090
+```
+Luego, acceder desde el navegador a: http://localhost:9090.
+- Grafana: Realizar un port-forward para acceder a la interfaz de Grafana.
+```
+kubectl port-forward -n <nombre-namespace> <nombre-pod-grafana> 3000:3000
+```
+Luego, acceder desde el navegador a: http://localhost:3000.
+
+#### Importar Dashboard de Grafana
+
+El dashboard personalizado se encuentra definido en el archivo custom_dashboard.json. Para importarlo:
+
+1. Accede a Grafana en http://localhost:3000.
+2. Inicia sesión con las credenciales:
+Usuario: admin
+Contraseña: prom-operator
+3. Dirígete a la sección de Dashboards.
+4. Selecciona la opción "Import".
+5. Sube el archivo  [json de grafana ](grafana/custom_dashboard.json)
+6. Guarda y visualiza el dashboard.
+
+Con esta configuración, se obtiene monitorización en tiempo real de métricas críticas como uso de memoria, uso de CPU y peticiones realizadas por los pods. Este setup asegura una gestión eficiente del clúster y la aplicación, permitiendo un rápido diagnóstico en caso de problemas.
+
+![Éxito Prometheus1](./img/prometheus1.png)
+
+![Éxito Prometheus1](./img/prometheus2.png)
+
+![Éxito Prometheus1](./img/prometheus3.png)
+
+![Éxito Prometheus1](./img/prometheus4.png)
+
+![Éxito Grafana](./img/grafanaExito.png)
+
 ### Pasos a seguir para ArgoCD
 
 1. Iniciar minikube
@@ -427,8 +610,9 @@ Aplica el archivo argoapp.yaml para registrar y desplegar la aplicación en Argo
 kubectl apply -f practica_final/charts/argocd/argoapp.yaml
 ```
 
-![Éxito despliegue en ArgoCD](img/exitoArgoCD.png)
+![Éxito despliegue en ArgoCD](img/argoCDrevExito.png)
 
+![Éxito despliegue en ArgoCD](img/argoCdrevExito2.png)
 
 
 
@@ -470,65 +654,6 @@ kubectl apply -f practica_final/charts/argocd/argoapp.yaml
 ### From the second time onwards
 - `docker compose up -d`
 
-### Despliegue de Prometheus y Grafana
-Para desplegar los ficheros en Prometheus se debe seguir los siguientes pasos:
-- Crear un cluster de Kubernetes:  
-
-    ```sh
-    minikube start --kubernetes-version='v1.31.0' \
-        --cpus=4 \
-        --memory=4096 \
-        --addons="metrics-server,default-storageclass,storage-provisioner,ingress" \
-        -p practica-final
-    ```  
-    ![Creacion de cluster](./img/despliegue_minikube.png)
-- Añadir el repositorio de helm `prometheus-community` para poder desplegar el chart `kube-prometheus-stack`:
-
-    ```sh
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
-    ```  
- - Desplegar el chart `kube-prometheus-stack` del repositorio de helm añadido en el paso anterior con los valores configurados en el archivo `kube-prometheus-stack/values.yaml` en el namespace `monitoring`:
-
-    ```sh
-    helm -n monitoring upgrade \
-        --install prometheus \
-        prometheus-community/kube-prometheus-stack \
-        -f kube-prometheus-stack/values.yaml \
-        --create-namespace \
-        --wait --version 55.4.0
-    ```
-    Para comprobar que se esta desplegando se deberá ejecutar el siguiente comando:
-
-    ```sh
-    kubectl --namespace monitoring get pods -l "release=prometheus"
-    ```  
-    ![Despliegue Prometheus](./img/despliegue_prometheus.png)
-
-- Para poder acceder por el navegador web se deberá hacer un `port-forwarding` de los servicios, para ellos se deberá ejecutar los siguientes comandos:
-
-  - Servicio de Grafana al puerto 3000 de la máquina:  
-
-    ```sh
-    kubectl -n monitoring port-forward svc/prometheus-grafana 3000:http-web
-    ```  
-    - Las credenciales por defecto son `admin` para el usuario y `prom-operator` para la contraseña.  
-
-      ![Login de Grafana](./img/principal_grafana.png)  
-
-    - Acceder al dashboard creado para observar las peticiones al servidor a través de la URL `http://localhost:3000/   dashboards`, seleccionando una vez en ella la opción Import y en el siguiente paso seleccionar **Upload JSON File** y seleccionar el archivo presente en esta carpeta llamado `custom_dashboard.json`.
-
-    ![Faltaria poner dashboard de Grafana cuando este](./img/dashboard_grafana.png)
-
-  - Servicio de Prometheus al puerto 9090 de la máquina:
-
-    ```sh
-    kubectl -n monitoring port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090
-    ```  
-
-    - Para acceder a la aplicación web principal debemos hacerlo a través de la URL `http://localhost:9090`.  
-    
-    ![Dashboard de Prometheus](./img/dashboard_prometheus.png)
 
 #### Desinstalar recursos
 Para desintalar los recursos una vez usados se deberá ejecutar los siguientes comandos:
@@ -626,3 +751,8 @@ Para desintalar los recursos una vez usados se deberá ejecutar los siguientes c
     - `vendor/bin/rector process --dry-run`
 - Process
     - `vendor/bin/rector process`
+r
+
+# Posibles mejoras
+
+## Evitar tener que hacer port-forward
