@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/Bryyyan93/practica_final.git'
-    targetRevision: develop-rev
+    targetRevision: develop
     path: charts
     helm:
       valueFiles:
