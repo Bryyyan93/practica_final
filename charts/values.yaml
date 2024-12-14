@@ -6,6 +6,7 @@
 # PHP
 ####################################################################################################
 php:
+  namespace: laravel-mysql
   name: php
   image:
     repository: bryyyan/practica-final
@@ -22,11 +23,11 @@ php:
       cpu: "500m"       # CPU máxima permitida
       memory: "256Mi"   # Memoria máxima permitida  
   readiness:
-    initialDelaySeconds: 5
-    periodSeconds: 5
+    initialDelaySeconds: 30
+    periodSeconds: 15
   liveness:
-    initialDelaySeconds: 10
-    periodSeconds: 5 
+    initialDelaySeconds: 45
+    periodSeconds: 15 
   volumen:
     name: php-code
   pvc:
@@ -46,7 +47,7 @@ nginx:
   volumen:
     name: nginx-config  
   readiness:
-    initialDelaySeconds: 5
+    initialDelaySeconds: 10
     periodSeconds: 5    
   port: 80
 
@@ -108,35 +109,6 @@ adminer:
   port: 8080
 
 ####################################################################################################
-# Mailpit
-####################################################################################################
-
-mail:
-  name: mail
-  image:
-    repository: axllent/mailpit
-    tag: latest
-    pullPolicy: IfNotPresent
-  ports:
-    http: 8025
-    smtp: 1025
-
-####################################################################################################
-# Redis
-####################################################################################################
-
-redis:
-  name: redis
-  image:
-    repository: redis
-    tag: latest
-    pullPolicy: IfNotPresent
-  port: 6379
-  pvc:
-    name: redis-data
-    storage: 1Gi # Modificar el tamaño del pvc en caso de ser necesario 
-
-####################################################################################################
 # Ingress
 ####################################################################################################
   
@@ -144,6 +116,9 @@ ingress:
   name: ingress
   enabled: true
   host: practica.local
+  paths:
+    grafana: /grafana
+    prometheus: /prometheus
 
 ####################################################################################################
 # HPA
@@ -157,32 +132,11 @@ hpa:
     utilization: 50 # Escalar si el uso promedio de CPU supera el %
 
 ####################################################################################################
-# Prometheus and Grafana
-####################################################################################################
-kube-prometheus-stack:
-  grafana:
-    adminPassword: "admin-password"
-    service:
-      type: ClusterIP
-    dashboardsConfigMaps: {}
-    datasources:
-      datasources.yaml:
-        apiVersion: 1
-        datasources:
-          - name: Prometheus
-            type: prometheus
-            url: http://laravel-mysql-kube-prometh-prometheus.laravel-mysql.svc.cluster.local:9090
-            access: proxy
-            isDefault: true
-            jsonData:
-              httpMethod: POST
-              timeInterval: 30s
-
-  prometheus:
-    service:
-      type: ClusterIP
-
-  alertmanager:
-    service:
-      type: ClusterIP
-
+# Prometheus-Grafana
+#################################################################################################### 
+prometheus:
+  enabled: true
+grafana:
+  enabled: true
+nodeExporter:
+  enabled: true
