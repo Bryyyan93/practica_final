@@ -619,6 +619,133 @@ kubectl apply -f practica_final/charts/argocd/argoapp.yaml
 
 
 
+## Guía de Despliegue de Infraestructura y Aplicación en GCP
+
+Este proyecto contiene los archivos necesarios para desplegar una infraestructura en Google Cloud Platform (GCP), utilizando **Terraform** para la creación de un clúster de Kubernetes (GKE), una base de datos gestionada (Cloud SQL), y el despliegue de la aplicación Laravel con Helm Charts.
+
+
+**Estructura de archivos**
+
+```
+  ├── Terraform-rev/
+  │   ├── main.tf          # Configuración principal de Terraform
+  │   ├── variables.tf     # Variables globales
+  │   ├── provider.tf      # Proveedores de Terraform (GCP y Kubernetes)
+  │   ├── gke-cluster.tf   # Configuración del clúster GKE
+  │   ├── cloudsql-instance.tf      # Configuración BBDD gestionada
+  │   ├── kubernetes-resources.tf   # Despliegue de recursos Kubernetes 
+  │   ├── load-balancer.tf          # Configuración del Ingress
+  │   ├── outputs.tf       # Outputs del despliegue 
+  ├──
+```
+### Descrición Archivos
+
+
+1. **main.tf**: Contiene la configuración base del proveedor GCP y los recursos principales (clúster GKE, base de datos Cloud SQL, etc.).
+2. **variables.tf**: Declara las variables utilizadas en todo el proyecto (por ejemplo, región, nombre del proyecto, etc.).
+3. **provider.tf**: Configura los proveedores de GCP y Kubernetes.
+4. **gke-cluster.tf**: Define el clúster GKE con los nodos necesarios para desplegar la aplicación.
+5. **cloudsql-instance.tf**: Configura la base de datos gestionada Cloud SQL (MySQL 8.0) y sus credenciales.
+6. **kubernetes-resources.tf**: Despliega la aplicación Laravel en el clúster GKE utilizando Helm Charts.
+7. **load-balancer.tf**: Configura un recurso Ingress para exponer la aplicación al exterior.
+8. **outputs.tf**: Proporciona información útil del despliegue, como el endpoint del clúster y el host del Ingress.
+
+### Guía de despliegue
+
+**Requisitos previos**
+- Cuenta activa en Google Cloud Plattform(GCP)
+- Instalación de:
+  · Terraform
+  · kubectl
+  · Helm
+- Configuración del acceso a GCP con gcloud CLI:
+
+```
+gcloud auth application-default login
+gcloud config set project <ID_PROYECTO>
+```
+
+**Pasos para desplegar**
+
+1. Configurar variables
+Edita el archivo variables.tf o usa un archivo terraform.tfvars para ajustar las variables del proyecto. Ejemplo:
+
+```
+project = "mi-proyecto-gcp"
+region  = "europe-west3"
+cluster_name = "laravel-mysql-cluster"
+```
+2. Inicializar Terraform
+
+Ejecuta los siguientes comandos en la carpeta terraform/:
+```
+terraform init
+```
+3. Aplicar la configuración
+Crea y despliega los recursos en GCP:
+
+```
+terraform apply
+```
+Confirma la ejecución escribiendo yes cuando se solicite.
+
+4. Configurar el Clúster GKE
+
+Obtén las credenciales del clúster GKE y configúralas en kubectl:
+```
+gcloud container clusters get-credentials laravel-mysql-cluster --region europe-west3
+```
+5. Desplegar la Aplicación con Helm
+
+1. Dirígete al directorio donde están los Helm Charts (charts/).
+2. Ejecuta el siguiente comando para instalar el chart:
+```
+helm install laravel-mysql ./charts
+```
+6. Acceder a la aplicación
+
+1. Obtén la IP externa del Ingress:
+```
+kubectl get ingress -n laravel-mysql
+```
+2. Agrega la IP al archivo /etc/hosts en tu máquina local:
+```
+<IP_INGRESS> practica.local
+```
+3. Abre un navegador y accede a:
+      · Aplicación principal: http://practica.local
+
+      · Adminer: http://practica.local/adminer
+
+7. Variables de entorno para Laravel
+
+Asegúrate de que la aplicación Laravel esté configurada para conectarse a la base de datos gestionada (Cloud SQL) utilizando variables de entorno en el archivo .env.
+
+Ejemplo:
+```
+DB_HOST=<CONNECTION_NAME>
+DB_PORT=3306
+DB_DATABASE=mydatabase
+DB_USERNAME=root
+DB_PASSWORD=rootpassword
+```
+
+**Outputs**
+Tras ejecutar terraform apply, obtendrás los siguientes outputs:
+
+·gke_cluster_endpoint: Endpoint del clúster GKE.
+
+·cloudsql_instance_connection_name: Conexión de la instancia de Cloud SQL.
+
+·ingress_host: URL de la aplicación desplegada.
+
+**Limpieza de recursos**
+
+Para eliminar todos los recursos creados, ejecuta:
+```
+terraform destroy
+```
+Confirma escribiendo yes cuando se solicite.
 
 
 
