@@ -669,8 +669,8 @@ Para realizar el despliegue se deberá seguir los siguientes pasos:
   ```sh
     kubectl apply -f practica_final/charts/argocd/argoapp.yaml
   ```  
-![Éxito despliegue en ArgoCD](./img/argoCDrevExito2.png)  
-![Éxito despliegue en ArgoCD2](./img/argoCdrevExito.png)
+![Éxito despliegue en ArgoCD](./img/argoCDrevExito.png)  
+![Éxito despliegue en ArgoCD2](./img/argoCdrevExito2.png)
 
 ## Despliegue de la monitorización
 Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de realizará de la misma manera:
@@ -691,6 +691,7 @@ Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de rea
   kubectl port-forward -n <nombre-namespace> svc/<nombre-svc-prometheus> 9090:9090
   ```
   Luego, acceder desde el navegador a: http://localhost:9090.
+
   ![Éxito Prometheus1](./img/prometheus1.png)
 
   ![Éxito Prometheus1](./img/prometheus2.png)
@@ -704,6 +705,7 @@ Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de rea
   kubectl port-forward -n <nombre-namespace> <nombre-pod-grafana> 3000:3000
   ```
   Luego, acceder desde el navegador a: http://localhost:3000.
+  
   ![Éxito Grafana](./img/grafanaExito.png)
 
 ### Importar Dashboard de Grafana
