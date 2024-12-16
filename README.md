@@ -717,7 +717,127 @@ Contraseña: prom-operator
 3. Dirígete a la sección de Dashboards.
 4. Selecciona la opción "Import".
 5. Sube el archivo  [json de grafana ](grafana/custom_dashboard.json)
-6. Guarda y visualiza el dashboard.
+6. Guarda y visualiza el dashboard.  
+
+# Workflows
+Para realizar los workflows se hecho uso de `GitHub Actions` ya que permite definir workflows que automatizan tareas repetitivas, como la ejecución de pruebas y la generación de releases, a través de archivos YAML almacenados en el directorio `.github/workflows`.  
+
+En este caso, los workflows tiene la siguiente estructura:
+```sh
+.github/
+└── workflows/
+    ├── release.yml    # Workflow para realizar releases automáticas
+    └── test.yml       # Workflow para ejecutar pruebas automatizadas
+```
+
+## Test
+Este workflow automatiza las pruebas y el análisis de calidad de código en una aplicación PHP usando GitHub Actions. A continuación se destacan los puntos más importantes:  
+
+- **Trigger**: Se ejecuta en push o pull request.
+```sh
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+```
+- **Instalación de PHP y dependencias**: Se usa Composer y se cachean las dependencias.
+  ```sh
+  - name: Cache Composer Dependencies
+    uses: actions/cache@v3
+    with:
+      path: vendor
+      key: composer-${{ hashFiles('**/composer.lock') }}
+      restore-keys: |
+        composer-
+
+  ```  
+  Cachea las dependencias de Composer para acelerar la instalación en ejecuciones futuras.
+- **Pruebas automatizadas**: Se ejecutan pruebas con PHPUnit.
+  ```sh
+  - name: Execute tests (Unit and Feature tests) via PHPUnit
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+    run: vendor/bin/phpunit
+
+  ```  
+  Ademas se genera un reporte de cobertura.
+  ```sh
+  - name: Generate coverage report
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+    run: vendor/bin/phpunit --coverage-clover=coverage.xml
+  ```
+
+- **Subida de resultados**: Los reportes de cobertura se guardan como artefactos.
+  ```sh
+  - name: Upload Test Results
+    uses: actions/upload-artifact@v3
+    with:
+      name: test-results
+      path: coverage.xml
+  ```
+- **Análisis de calidad**: SonarCloud valida la calidad del código y la cobertura de pruebas.
+  ```sh
+  - name: Run SonarScanner
+    uses: SonarSource/sonarqube-scan-action@v4
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    with:
+      args: >
+        -Dsonar.host.url=https://sonarcloud.io
+        -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+        -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY}}
+        -Dsonar.php.coverage.reportPaths=coverage.xml
+  ```
+![Test workflows](./img/test_worflows.png)
+## Release
+Este workflow automatiza la generación de releases, la construcción de imágenes Docker multiplataforma y el empaquetado de Helm Charts tras la ejecución exitosa del workflow "test" en la rama `main`.
+
+- **Trigger**: Se ejecuta automáticamente cuando el workflow `test` en la rama `main` finaliza con éxito.
+- **Releases**: Genera versiones automáticas usando semantic-release. 
+  ```sh
+  - name: Release
+    run: |
+      npx semantic-release --debug | tee semantic_release_output.txt
+      if grep -q "There are no relevant changes" semantic_release_output.txt; then
+        VERSION=$(git describe --tags --abbrev=0)
+      else
+        VERSION=$(grep -oP '(?<=Published release ).*' semantic_release_output.txt)
+        echo "$VERSION" > semantic_release_version.txt
+      fi
+  ```
+  ![Workflow para sematic release](./img/workflow-sematic-release.png)
+- **Docker**:
+  - Construcción de imágenes multiplataforma con QEMU y Buildx.
+    ```sh
+    - uses: docker/build-push-action@v6
+      with:
+      context: .
+      platforms: linux/amd64,linux/arm64
+      push: true
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
+    ```
+  - Publicación en GHCR y Docker Hub.
+    ![Workflow de dockerhub](./img/workflows-dockerhub.png)
+    ![Imagenes en Dockerhub](./img/imagenes-dockerhub.png)
+
+- **Helm**: Actualización y empaquetado de Helm Charts para versiones consistentes.
+  ```sh
+  - name: Update helm chart files to latest version
+    run: |
+      IMAGE_NAME="ghcr.io/${{ github.repository }}" yq -i '.image.repository = strenv(IMAGE_NAME)' ./charts/values.yaml
+
+  ```
+- **Caché de herramientas**: Optimiza la instalación de yq, helm-docs y dependencias npm.
+
+![Release workflows](./img/release_workflows.png)
+![Artefactos con version en Github](./img/github_artefactos.png)
+
+
 
 # Guía de Despliegue de Infraestructura y Aplicación en GCP
 
