@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: "{{ .Release.Name }}-{{ .Values.db.name }}"
+  namespace: {{ .Values.php.namespace }}
   labels:
     app: {{ .Values.db.name }}
 spec:
@@ -23,22 +24,22 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: "{{ .Release.Name }}-{{ .Values.db.name }}-secret"
+              name: "{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
               key: MYSQL_ROOT_PASSWORD
         - name: MYSQL_DATABASE
           valueFrom:
             secretKeyRef:
-              name: "{{ .Release.Name }}-{{ .Values.db.name }}-secret"
+              name: "{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
               key: MYSQL_DATABASE
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
-              name: "{{ .Release.Name }}-{{ .Values.db.name }}-secret"
+              name: "{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
               key: MYSQL_USER
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: "{{ .Release.Name }}-{{ .Values.db.name }}-secret"
+              name: "{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
               key: MYSQL_PASSWORD
         volumeMounts:
         - name: {{ .Values.db.volumen.name }}
