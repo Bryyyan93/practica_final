@@ -1,5 +1,45 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
+# Indice
+- [Laravel Docker Starter Kit](#laravel-docker-starter-kit)
+  - [Características Principales](#características-principales)
+  - [Requisitos](#requisitos)
+- [Despliegue](#despliegue)
+  - [Primer despliegue](#primer-despliegue)
+  - [A partir del segundo despliegue](#a-partir-del-segundo-despliegue)
+- [Test de la aplicación](#test-de-la-aplicación)
+- [Migración de la base de datos](#migración-de-la-base-de-datos)
+- [Despliegue en Kubernetes](#despliegue-en-kubernetes)
+  - [Arquitectura de Helm Chart](#arquitectura-de-helm-chart)
+  - [Descripción de los componentes](#descripción-de-los-componentes)
+    - [PHP Deployment](#php-deployment)
+    - [Base de datos](#base-de-datos)
+    - [Garantizar la resiliencia de la Aplicación](#garantizar-la-resiliencia-de-la-aplicación)
+    - [Escalar la Aplicación de manera automática](#escalar-la-aplicación-de-manera-automática)
+    - [Exponer la Aplicación al exterior](#exponer-la-aplicación-al-exterior)
+    - [Gestión de Secrets](#gestión-de-secrets)
+- [Monitorización con Prometheus y Grafana](#monitorización-con-prometheus-y-grafana)
+  - [Manifiestos para Prometheus](#manifiestos-para-prometheus)
+  - [Manifiestos para Grafana](#manifiestos-para-grafana)
+  - [Importar Dashboard de Grafana](#importar-dashboard-de-grafana)
+- [Despliegue con Helm](#despliegue-con-helm)
+- [Despliegue con ArgoCD](#despliegue-con-argocd)
+  - [Configuración del manifiesto](#configuración-del-manifiesto)
+  - [Despliegue](#despliegue-1)
+- [Despliegue de la monitorización](#despliegue-de-la-monitorización)
+- [Workflows](#workflows)
+  - [Test](#test)
+  - [Release](#release)
+- [Guía de Despliegue de Infraestructura y Aplicación en GCP](#guía-de-despliegue-de-infraestructura-y-aplicación-en-gcp)
+  - [Estructura de archivos](#estructura-de-archivos)
+  - [Descripción Archivos](#descripción-archivos)
+  - [Guía de despliegue](#guía-de-despliegue)
+  - [Outputs](#outputs)
+  - [Limpieza de recursos](#limpieza-de-recursos)
+- [Notes](#notes)
+- [Posibles mejoras](#posibles-mejoras)
+- [Referencias](#referencias)
+
 # Laravel Docker Starter Kit
 El Laravel Docker Starter Kit es una configuración preconstruida y optimizada que permite desplegar de manera rápida y eficiente un entorno de desarrollo completo para aplicaciones Laravel. Este kit proporciona las herramientas necesarias para trabajar con las versiones más recientes de Laravel, PHP, y tecnologías complementarias, utilizando Docker y Docker Compose.  
 
@@ -954,84 +994,93 @@ terraform destroy
 Confirma escribiendo yes cuando se solicite.
 
 # Notes
-## Laravel Versions
-- [Laravel 11.x](https://github.com/refactorian/laravel-docker/tree/main)
-- [Laravel 10.x](https://github.com/refactorian/laravel-docker/tree/laravel_10x)
-
-## Laravel App
-- URL: http://localhost
-
-## phpMyAdmin
-- URL: http://localhost:8080
-- Server: `db`
-- Username: `refactorian`
-- Password: `refactorian`
-- Database: `refactorian`
-
-## Adminer
-- URL: http://localhost:9090
-- Server: `db`
-- Username: `refactorian`
-- Password: `refactorian`
-- Database: `refactorian`
-
-## Basic docker compose commands
-- Build or rebuild services
+- Laravel Versions
+  - [Laravel 11.x](https://github.com/refactorian/laravel-docker/tree/main)
+  - [Laravel 10.x](https://github.com/refactorian/laravel-docker/tree/laravel_10x)
+- Laravel App
+  - URL: http://localhost
+- phpMyAdmin
+  - **URL**: http://localhost:8080
+  - **Server**: `db`
+  - **Username**: `refactorian`
+  - **Password**: `refactorian`
+  - **Database**: `refactorian`
+- Adminer
+  - **URL**: http://localhost:9090
+  - **Server**: `db`
+  - **Username**: `refactorian`
+  - **Password**: `refactorian`
+  - **Database**: `refactorian`
+- Basic Docker Compose Commands
+  - **Build or rebuild services**  
     - `docker compose build`
-- Create and start containers
+  - **Create and start containers**  
     - `docker compose up -d`
-- Stop and remove containers, networks
+  - **Stop and remove containers, networks**  
     - `docker compose down`
-- Stop all services
+  - **Stop all services**  
     - `docker compose stop`
-- Restart service containers
+  - **Restart service containers**  
     - `docker compose restart`
-- Run a command inside a container
+  - **Run a command inside a container**  
     - `docker compose exec [container] [command]`
-
-## Useful Laravel Commands
-- Display basic information about your application
+- Useful Laravel Commands
+  - **Display basic information about your application**  
     - `php artisan about`
-- Remove the configuration cache file
+  - **Remove the configuration cache file**  
     - `php artisan config:clear`
-- Flush the application cache
+  - **Flush the application cache**  
     - `php artisan cache:clear`
-- Clear all cached events and listeners
+  - **Clear all cached events and listeners**  
     - `php artisan event:clear`
-- Delete all of the jobs from the specified queue
+  - **Delete all of the jobs from the specified queue**  
     - `php artisan queue:clear`
-- Remove the route cache file
+  - **Remove the route cache file**  
     - `php artisan route:clear`
-- Clear all compiled view files
+  - **Clear all compiled view files**  
     - `php artisan view:clear`
-- Remove the compiled class file
+  - **Remove the compiled class file**  
     - `php artisan clear-compiled`
-- Remove the cached bootstrap files
+  - **Remove the cached bootstrap files**  
     - `php artisan optimize:clear`
-- Delete the cached mutex files created by scheduler
+  - **Delete the cached mutex files created by scheduler**  
     - `php artisan schedule:clear-cache`
-- Flush expired password reset tokens
+  - **Flush expired password reset tokens**  
     - `php artisan auth:clear-resets`
-
-## Laravel Pint (Code Style Fixer | PHP-CS-Fixer)
-- Format all files
+- Laravel Pint (Code Style Fixer | PHP-CS-Fixer)
+  - **Format all files**  
     - `vendor/bin/pint`
-- Format specific files or directories
-    - `vendor/bin/pint app/Models`
+  - **Format specific files or directories**  
+    - `vendor/bin/pint app/Models`  
     - `vendor/bin/pint app/Models/User.php`
-- Format all files with preview
+  - **Format all files with preview**  
     - `vendor/bin/pint -v`
-- Format uncommitted changes according to Git
+  - **Format uncommitted changes according to Git**  
     - `vendor/bin/pint --dirty`
-- Inspect all files
-  - `vendor/bin/pint --test`
-
-## Rector
-- Dry Run
+  - **Inspect all files**  
+    - `vendor/bin/pint --test`
+- Rector
+  - **Dry Run**  
     - `vendor/bin/rector process --dry-run`
-- Process
+  - **Process**  
     - `vendor/bin/rector process`
-
 # Posibles mejoras
+- **Evitar port-forward**.Se ha hecho pruebas para poder acceder a los servicios de phpmydmin, Grafana y Prometheus através del manifiesto de `ingress`. Por falta de tiempo, no se ha podido investigar el por que no se ha conseguido acceder a estos servicios.
 
-## Evitar tener que hacer port-forward
+Para el caso concreto de phpmyadmin, falla al cargar los estáticos de la página web. Para un futuro nos gustaría que todos los servicios sean accesibles atraves del ingress.
+
+- **Manejo de los secretos**. Como se ha visto en el apartado de secrets se ha hecho un cambio para adaptarlo al despliegue de ArgoCD. Una posible mejora sería en la introducción de estos valores encriptados o el uso de un workflow donde se le pueda pasar estos valores para que no estén expuestos.
+
+- **Modificaciones dinamicas**. En este punto nos gustaría que se le pueda dar valores para crear y desplegar la aplicación con credenciales distintas a las de por defecto, al momento de ejecutar. Los valores que nos gustaría que fueran dinámicos son:
+  - Credenciales de la Base de datos. 
+  - Configuraciones de los .env
+  - Configuraciones del dashboard de Grafana.
+
+# Referencias
+Para el desarrollo de este proyecto se ha hecho uso de la siguiente documentación:
+- Aplicación base: https://github.com/refactorian/laravel-docker
+- https://github.com/learnk8s/laravel-kubernetes-demo.git
+- https://medium.com/@Ahmed75/deploy-laravel-application-on-kubernetes-best-practice-ce52af341df
+- https://www.digitalocean.com/community/tutorials/how-to-deploy-laravel-7-and-mysql-on-kubernetes-using-helm
+- Apuntes de los distintos modulos del bootcamp 
+
