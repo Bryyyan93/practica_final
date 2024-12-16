@@ -360,41 +360,41 @@ Para implementar se sigue los siguientes pasos:
 
   ```
 - Se obtiene un manifiesto que, despues de parametrizar, obtenemos:
-```sh
-    ---
-    apiVersion: bitnami.com/v1alpha1
-    kind: SealedSecret
-    metadata:
-      creationTimestamp: null
-      name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
-      namespace: default
-      labels:
-        app: {{ .Values.db.name }}
-        app.kubernetes.io/managed-by: Helm
-      annotations:
-        "helm.sh/hook": "pre-install, pre-upgrade"
-        "helm.sh/hook-weight": "-1"
-        meta.helm.sh/release-name: {{ .Release.Name }}
-        meta.helm.sh/release-namespace: {{ .Release.Namespace }}  
-    spec:
-      encryptedData:
-      # Datos encriptados  
-      template:
-        metadata:
-          creationTimestamp: null
-          labels:
-            app: {{ .Values.db.name }}
-            app.kubernetes.io/managed-by: Helm
-          name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
-          namespace: {{ .Release.Namespace }}
-          annotations:
-            "helm.sh/hook": "pre-install, pre-upgrade"
-            "helm.sh/hook-weight": "-1"
-            meta.helm.sh/release-name: {{ .Release.Name }}
-            meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  ```sh
+      ---
+      apiVersion: bitnami.com/v1alpha1
+      kind: SealedSecret
+      metadata:
+        creationTimestamp: null
+        name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+        namespace: default
+        labels:
+          app: {{ .Values.db.name }}
+          app.kubernetes.io/managed-by: Helm
+        annotations:
+          "helm.sh/hook": "pre-install, pre-upgrade"
+          "helm.sh/hook-weight": "-1"
+          meta.helm.sh/release-name: {{ .Release.Name }}
+          meta.helm.sh/release-namespace: {{ .Release.Namespace }}  
+      spec:
+        encryptedData:
+        # Datos encriptados  
+        template:
+          metadata:
+            creationTimestamp: null
+            labels:
+              app: {{ .Values.db.name }}
+              app.kubernetes.io/managed-by: Helm
+            name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+            namespace: {{ .Release.Namespace }}
+            annotations:
+              "helm.sh/hook": "pre-install, pre-upgrade"
+              "helm.sh/hook-weight": "-1"
+              meta.helm.sh/release-name: {{ .Release.Name }}
+              meta.helm.sh/release-namespace: {{ .Release.Namespace }}
 
-        type: Opaque
-``` 
+          type: Opaque
+  ``` 
 Al desplegar con `ArgoCD` hubo algunos problemas la momento de desencriptar las credenciales por lo que se optó por una solución más sencilla, que se describe a continuación:  
 
 - En el manifiesto `db-secret` se modifica el apartado de `data` para que reciba los valores y los codifique en `Base64`
@@ -575,7 +575,7 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
   ```  
 - Verificar el estado de los diferentes componentes desplegados:  
     - Verificar todos los estados: `kubectl -n laravel-mysql get all`  
-    ![Verificar estados](./img/ckeck-all-helm.png)  
+    ![Verificar estados](./img/get-all-despliegue.png)  
     - Verificar los `PVC`: `kubectl -n laravel-mysql get pvc`  
     ![Verificar PVC](./img/get-pvc.png)
     - Verificar autoescalado: `kubectl -n laravel-mysql get hpa -w`  
@@ -952,28 +952,28 @@ terraform destroy
 Confirma escribiendo yes cuando se solicite.
 
 # Notes
-### Laravel Versions
+## Laravel Versions
 - [Laravel 11.x](https://github.com/refactorian/laravel-docker/tree/main)
 - [Laravel 10.x](https://github.com/refactorian/laravel-docker/tree/laravel_10x)
 
-### Laravel App
+## Laravel App
 - URL: http://localhost
 
-### phpMyAdmin
+## phpMyAdmin
 - URL: http://localhost:8080
 - Server: `db`
 - Username: `refactorian`
 - Password: `refactorian`
 - Database: `refactorian`
 
-### Adminer
+## Adminer
 - URL: http://localhost:9090
 - Server: `db`
 - Username: `refactorian`
 - Password: `refactorian`
 - Database: `refactorian`
 
-### Basic docker compose commands
+## Basic docker compose commands
 - Build or rebuild services
     - `docker compose build`
 - Create and start containers
@@ -987,7 +987,7 @@ Confirma escribiendo yes cuando se solicite.
 - Run a command inside a container
     - `docker compose exec [container] [command]`
 
-### Useful Laravel Commands
+## Useful Laravel Commands
 - Display basic information about your application
     - `php artisan about`
 - Remove the configuration cache file
@@ -1011,7 +1011,7 @@ Confirma escribiendo yes cuando se solicite.
 - Flush expired password reset tokens
     - `php artisan auth:clear-resets`
 
-### Laravel Pint (Code Style Fixer | PHP-CS-Fixer)
+## Laravel Pint (Code Style Fixer | PHP-CS-Fixer)
 - Format all files
     - `vendor/bin/pint`
 - Format specific files or directories
@@ -1024,12 +1024,11 @@ Confirma escribiendo yes cuando se solicite.
 - Inspect all files
   - `vendor/bin/pint --test`
 
-### Rector
+## Rector
 - Dry Run
     - `vendor/bin/rector process --dry-run`
 - Process
     - `vendor/bin/rector process`
-r
 
 # Posibles mejoras
 
