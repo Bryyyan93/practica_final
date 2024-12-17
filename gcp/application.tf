@@ -3,6 +3,7 @@ resource "helm_release" "laravel_mysql" {
   name       = "laravel-mysql"
   namespace  = "laravel-mysql"
   create_namespace = true
+  timeout          = 600 # Aumenta el timeout a 10 minutos
 
   #repository = "https://github.com/Bryyyan93/practica_final.git"
   chart = "${path.module}/../charts" # Ruta local al Helm Chart
