@@ -355,87 +355,7 @@ spec:
                   number: {{ .Values.adminer.port }}
 ```
 ### Gestión de Secrets
-Dado que no es muy seguro mantener los secretos directamente en el repositorio se ha implementado `Sealed Secrets`. Es una solución de Bitnami que permite cifrar secretos con una clave pública del clúster. Los secretos cifrados se almacenan en el repositorio y se descifran en el clúster.  
-
-Para implementar se sigue los siguientes pasos:  
-
-- Instalar el controlador de `Sealed Secrets` en el clúster.
-  ```sh
-  kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.20.5/controller.yaml
-  ```  
-  - Verifica que el controller esté en funcionamiento:
-    ```
-    kubectl get pods -n kube-system | grep sealed-secrets
-
-    ```  
-- Instalar la CLI de Sealed Secrets (`kubeseal`)
-  ```sh
-  KUBESEAL_VERSION='0.25.0'
-  curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION:?}/kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz"
-  tar -xvzf kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz kubeseal
-  sudo install -m 755 kubeseal /usr/local/bin/kubeseal
-  ```
-  - Verifica que esté instalado correctamente:  
-    ```sh
-    kubeseal --version
-
-    ```  
-- Crear un archivo de secretos no cifrado, como este:
-  ```sh
-  apiVersion: v1
-  kind: Secret
-  metadata:
-  name: my-db-secret
-  namespace: default
-  data:
-  MYSQL_ROOT_PASSWORD: bXktc2VjcmV0LXJvb3Q=  # Base64 de "my-secret-root"
-  MYSQL_DATABASE: bXktZGF0YWJhc2U=           # Base64 de "my-database"
-  MYSQL_USER: bXktdXNlcg==                   # Base64 de "my-user"
-  MYSQL_PASSWORD: bXktcGFzc3dvcmQ=           # Base64 de "my-password"
-  ```      
-- Cifrar el archivo usando Sealed Secrets
-  ```sh
-  kubeseal --controller-namespace kube-system --controller-name sealed-secrets-controller \  
-    --format yaml < db-secret.yaml > db-sealed-secrets.yaml
-
-  ```
-- Se obtiene un manifiesto que, despues de parametrizar, obtenemos:
-  ```sh
-      ---
-      apiVersion: bitnami.com/v1alpha1
-      kind: SealedSecret
-      metadata:
-        creationTimestamp: null
-        name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
-        namespace: default
-        labels:
-          app: {{ .Values.db.name }}
-          app.kubernetes.io/managed-by: Helm
-        annotations:
-          "helm.sh/hook": "pre-install, pre-upgrade"
-          "helm.sh/hook-weight": "-1"
-          meta.helm.sh/release-name: {{ .Release.Name }}
-          meta.helm.sh/release-namespace: {{ .Release.Namespace }}  
-      spec:
-        encryptedData:
-        # Datos encriptados  
-        template:
-          metadata:
-            creationTimestamp: null
-            labels:
-              app: {{ .Values.db.name }}
-              app.kubernetes.io/managed-by: Helm
-            name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
-            namespace: {{ .Release.Namespace }}
-            annotations:
-              "helm.sh/hook": "pre-install, pre-upgrade"
-              "helm.sh/hook-weight": "-1"
-              meta.helm.sh/release-name: {{ .Release.Name }}
-              meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-
-          type: Opaque
-  ``` 
-Al desplegar con `ArgoCD` hubo algunos problemas la momento de desencriptar las credenciales por lo que se optó por una solución más sencilla, que se describe a continuación:  
+Para la gestión de secretos se ha implementado de la siguiente manera:  
 
 - En el manifiesto `db-secret` se modifica el apartado de `data` para que reciba los valores y los codifique en `Base64`
   ```sh
@@ -1069,7 +989,87 @@ Confirma escribiendo yes cuando se solicite.
 
 Para el caso concreto de phpmyadmin, falla al cargar los estáticos de la página web. Para un futuro nos gustaría que todos los servicios sean accesibles atraves del ingress.
 
-- **Manejo de los secretos**. Como se ha visto en el apartado de secrets se ha hecho un cambio para adaptarlo al despliegue de ArgoCD. Una posible mejora sería en la introducción de estos valores encriptados o el uso de un workflow donde se le pueda pasar estos valores para que no estén expuestos.
+  - **Manejo de los secretos**. Dado que no es muy seguro mantener los secretos directamente en el repositorio se ha implementado `Sealed Secrets`. Es una solución de Bitnami que permite cifrar secretos con una clave pública del clúster. Los secretos cifrados se almacenan en el repositorio y se descifran en el clúster.  
+
+  Para implementar se sigue los siguientes pasos:  
+
+  - Instalar el controlador de `Sealed Secrets` en el clúster.
+    ```sh
+    kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.20.5/controller.yaml
+    ```  
+    - Verifica que el controller esté en funcionamiento:
+      ```
+      kubectl get pods -n kube-system | grep sealed-secrets
+
+      ```  
+  - Instalar la CLI de Sealed Secrets (`kubeseal`)
+    ```sh
+    KUBESEAL_VERSION='0.25.0'
+    curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION:?}/kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz"
+    tar -xvzf kubeseal-${KUBESEAL_VERSION:?}-linux-amd64.tar.gz kubeseal
+    sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+    ```
+    - Verifica que esté instalado correctamente:  
+      ```sh
+      kubeseal --version
+
+      ```  
+  - Crear un archivo de secretos no cifrado, como este:
+    ```sh
+    apiVersion: v1
+    kind: Secret
+    metadata:
+    name: my-db-secret
+    namespace: default
+    data:
+    MYSQL_ROOT_PASSWORD: bXktc2VjcmV0LXJvb3Q=  # Base64 de "my-secret-root"
+    MYSQL_DATABASE: bXktZGF0YWJhc2U=           # Base64 de "my-database"
+    MYSQL_USER: bXktdXNlcg==                   # Base64 de "my-user"
+    MYSQL_PASSWORD: bXktcGFzc3dvcmQ=           # Base64 de "my-password"
+    ```      
+  - Cifrar el archivo usando Sealed Secrets
+    ```sh
+    kubeseal --controller-namespace kube-system --controller-name sealed-secrets-controller \  
+      --format yaml < db-secret.yaml > db-sealed-secrets.yaml
+
+    ```
+  - Se obtiene un manifiesto que, despues de parametrizar, obtenemos:
+    ```sh
+        ---
+        apiVersion: bitnami.com/v1alpha1
+        kind: SealedSecret
+        metadata:
+          creationTimestamp: null
+          name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+          namespace: default
+          labels:
+            app: {{ .Values.db.name }}
+            app.kubernetes.io/managed-by: Helm
+          annotations:
+            "helm.sh/hook": "pre-install, pre-upgrade"
+            "helm.sh/hook-weight": "-1"
+            meta.helm.sh/release-name: {{ .Release.Name }}
+            meta.helm.sh/release-namespace: {{ .Release.Namespace }}  
+        spec:
+          encryptedData:
+          # Datos encriptados  
+          template:
+            metadata:
+              creationTimestamp: null
+              labels:
+                app: {{ .Values.db.name }}
+                app.kubernetes.io/managed-by: Helm
+              name: db-secret  #"{{ .Release.Name }}-{{ .Values.db.name }}-{{ .Values.db.secrets.name }}"
+              namespace: {{ .Release.Namespace }}
+              annotations:
+                "helm.sh/hook": "pre-install, pre-upgrade"
+                "helm.sh/hook-weight": "-1"
+                meta.helm.sh/release-name: {{ .Release.Name }}
+                meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+
+            type: Opaque
+    ``` 
+  Al desplegar con `ArgoCD` hubo algunos problemas la momento de desencriptar las credenciales por lo que se optó por una solución más sencilla, descrita anteriormente.
 
 - **Modificaciones dinamicas**. En este punto nos gustaría que se le pueda dar valores para crear y desplegar la aplicación con credenciales distintas a las de por defecto, al momento de ejecutar. Los valores que nos gustaría que fueran dinámicos son:
   - Credenciales de la Base de datos. 
