@@ -2,8 +2,8 @@
 data "google_client_config" "default" {}
 
 provider "google" {
-  project = "pure-pact-444915-s4"
-  region  = "us-central1"
+  project = var.project
+  region  = var.region
 }
 
 provider "kubernetes" {
