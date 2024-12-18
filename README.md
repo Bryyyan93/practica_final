@@ -587,7 +587,7 @@ ArgoCD es una herramienta declarativa de **Continuous Delivery (CD)** para Kuber
 A continuación, se configurará y se desplegará `ArgoCD` en un clúster de Kubernetes local utilizando Minikube. Luego, registraremos una aplicación en `ArgoCD` para que sea gestionada y desplegada automáticamente.
 
 ### Configuración del manifiesto
-El manifiesto creado para lanzar el despliegue de ArgoCD estaráe en la `charts/argocd/` y se llamará `argoapp.yaml`.  En este manifiesto se hará las siguientes modificaciones:
+El manifiesto creado para lanzar el despliegue de ArgoCD estará en la `charts/argocd/` y se llamará `argoapp.yaml`.  En este manifiesto se hará las siguientes modificaciones:
 
 - Se deberá modificar el manifiesto de argocd para registar la aplicación desde el repositorio.  
   ```
@@ -863,7 +863,7 @@ Este proyecto contiene los archivos necesarios para desplegar una infraestructur
 ## Estructura de archivos 
 
 ```
-```plaintext
+
 gcp/
 ├── gke-cluster.tf             # Configuración del clúster de Kubernetes (GKE) en GCP
 ├── helm-release.tf            # Configuración para desplegar Helm Charts en el clúster GKE
