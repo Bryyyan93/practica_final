@@ -30,11 +30,9 @@
 - [Workflows](#workflows)
   - [Test](#test)
   - [Release](#release)
-- [Guía de Despliegue de Infraestructura y Aplicación en GCP](#guía-de-despliegue-de-infraestructura-y-aplicación-en-gcp)
+- [Migración y despliegue en Google Cloud](#migración-y-despliegue-en-google-cloud)
   - [Estructura de archivos](#estructura-de-archivos)
-  - [Descripción Archivos](#descripción-archivos)
   - [Guía de despliegue](#guía-de-despliegue)
-  - [Outputs](#outputs)
   - [Limpieza de recursos](#limpieza-de-recursos)
 - [Notes](#notes)
 - [Posibles mejoras](#posibles-mejoras)
@@ -99,7 +97,9 @@ Para migrar tablas a database refactorian de deberá seguir los siguientes pasos
 - `php artisan key:generate`
 - `php artisan migrate`
 
-![Migración de las tablas a database](img/migracionTablas.png)
+<p align="center">
+  <img src="img/migracionTablas.png" alt="Migración de las tablas a database" width="30%">
+</p>
 
 # Despliegue en Kubernetes
 
@@ -518,8 +518,11 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
         --memory=4096 \
         --addons="metrics-server,default-storageclass,storage-provisioner,ingress" \
         -p practica-final
-    ```  
-    ![Creacion de cluster](./img/despliegue_minikube.png)  
+    ```
+    <p align="center">
+      <img src="./img/despliegue_minikube.png" alt="Creacion de cluster" width="80%">
+    </p>    
+
 - Crear el namespace:
   ```sh 
   kubectl create namespace laravel-mysql
@@ -535,13 +538,25 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
   ```  
 - Verificar el estado de los diferentes componentes desplegados:  
     - Verificar todos los estados: `kubectl -n laravel-mysql get all`  
-    ![Verificar estados](./img/get-all-despliegue.png)  
+    <p align="center">
+      <img src="./img/get-all-despliegue.png" alt="Verificar estados" width="90%">
+    </p>
+
     - Verificar los `PVC`: `kubectl -n laravel-mysql get pvc`  
-    ![Verificar PVC](./img/get-pvc.png)
+    <p align="center">
+      <img src="./img/get-pvc.png" alt="Verificar PVC" width="80%">
+    </p>
+
     - Verificar autoescalado: `kubectl -n laravel-mysql get hpa -w`  
-    ![Autoescalado](./img/hpa_down.png)
-    - Tambien lo podemos confirmar desde el dashboard de minikube:  
-    ![Dashboard de minikube](./img/minikube-dashboard.png)
+    <p align="center">
+      <img src="./img/hpa_down.png" alt="Autoescalado" width="80%">
+    </p>
+
+    - También lo podemos confirmar desde el dashboard de minikube:  
+    <p align="center">
+      <img src="./img/minikube-dashboard.png" alt="Dashboard de Minikube" width="90%">
+    </p>
+
 
 - Para verificar que `ingress` esté funcionando correctamente deberemos seguir los siguientes pasos:
   - Conocer la IP de minikube: 
@@ -557,9 +572,14 @@ Para comprobar que se los charts de Helm se despliegan correctamente, ejecutamos
     192.168.49.2 practica.local
     ``` 
   - En el navegador web, colocamos el siguiente enlace: http://practica.local
-    ![Laravel web](./img/app-web.png)  
+    <p align="center">
+      <img src="./img/app-web.png" alt="Laravel web" width="90%">
+    </p>  
+
   - En el navegador web, colocamos el siguiente enlace: http://practica.local/adminer  
-    ![Adminer web](./img/adminer-web.png)  
+    <p align="center">
+      <img src="./img/adminer-web.png" alt="Adminer web" width="50%">
+    </p>  
 
 ## Despliegue con ArgoCD
 ArgoCD es una herramienta declarativa de **Continuous Delivery (CD)** para Kubernetes que permite gestionar y automatizar el despliegue de aplicaciones mediante **GitOps**. Este flujo asegura que el estado deseado de las aplicaciones esté siempre sincronizado con las configuraciones definidas en un repositorio Git.
@@ -629,8 +649,13 @@ Para realizar el despliegue se deberá seguir los siguientes pasos:
   ```sh
     kubectl apply -f practica_final/charts/argocd/argoapp.yaml
   ```  
-![Éxito despliegue en ArgoCD](./img/argoCDrevExito.png)  
-![Éxito despliegue en ArgoCD2](./img/argoCdrevExito2.png)
+<p align="center">
+  <img src="./img/argoCDrevExito.png" alt="Éxito despliegue en ArgoCD" width="80%">
+</p>
+
+<p align="center">
+  <img src="./img/argoCdrevExito2.png" alt="Éxito despliegue en ArgoCD2" width="60%">
+</p>
 
 ## Despliegue de la monitorización
 Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de realizará de la misma manera:
@@ -643,7 +668,10 @@ Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de rea
     ```
     Una vez ejecutado, abrir el navegador web y acceder a: http://localhost:8080
 
-    ![Acceso PhpMyAdmin](./img/accesoPhpmyAdmin.png)
+    <p align="center">
+      <img src="./img/accesoPhpmyAdmin.png" alt="Acceso PhpMyAdmin" width="60%">
+    </p>
+
 
 - Acceso a Prometheus.  
   Realizar un port-forward para acceder a la interfaz.
@@ -652,13 +680,22 @@ Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de rea
   ```
   Luego, acceder desde el navegador a: http://localhost:9090.
 
-  ![Éxito Prometheus1](./img/prometheus1.png)
+  <p align="center">
+    <img src="./img/prometheus1.png" alt="Éxito Prometheus1" width="90%">
+  </p>
 
-  ![Éxito Prometheus1](./img/prometheus2.png)
+  <p align="center">
+    <img src="./img/prometheus2.png" alt="Éxito Prometheus2" width="90%">
+  </p>
 
-  ![Éxito Prometheus1](./img/prometheus3.png)
+  <p align="center">
+    <img src="./img/prometheus3.png" alt="Éxito Prometheus3" width="90%">
+  </p>
 
-  ![Éxito Prometheus1](./img/prometheus4.png)
+  <p align="center">
+    <img src="./img/prometheus4.png" alt="Éxito Prometheus4" width="90%">
+  </p>
+
 - Grafana.  
   Realizar un port-forward para acceder a la interfaz de Grafana.
   ```sh
@@ -666,7 +703,10 @@ Para desplegar la monitorización de la aplicación con Helm y con ArgoCD de rea
   ```
   Luego, acceder desde el navegador a: http://localhost:3000.
   
-  ![Éxito Grafana](./img/grafanaExito.png)
+  <p align="center">
+    <img src="./img/grafanaExito.png" alt="Éxito Grafana" width="90%">
+  </p>
+
 
 ### Importar Dashboard de Grafana
 
@@ -754,7 +794,10 @@ on:
         -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY}}
         -Dsonar.php.coverage.reportPaths=coverage.xml
   ```
-![Test workflows](./img/test_worflows.png)
+<p align="center">
+  <img src="./img/test_worflows.png" alt="Test workflows" width="80%">
+</p>  
+
 ## Release
 Este workflow automatiza la generación de releases, la construcción de imágenes Docker multiplataforma y el empaquetado de Helm Charts tras la ejecución exitosa del workflow "test" en la rama `main`.
 
@@ -771,7 +814,9 @@ Este workflow automatiza la generación de releases, la construcción de imágen
         echo "$VERSION" > semantic_release_version.txt
       fi
   ```
-  ![Workflow para sematic release](./img/workflow-sematic-release.png)
+  <p align="center">
+    <img src="./img/workflow-sematic-release.png" alt="Workflow para semantic release" width="80%">
+  </p>
 - **Docker**:
   - Construcción de imágenes multiplataforma con QEMU y Buildx.
     ```sh
@@ -784,8 +829,13 @@ Este workflow automatiza la generación de releases, la construcción de imágen
       labels: ${{ steps.meta.outputs.labels }}
     ```
   - Publicación en GHCR y Docker Hub.
-    ![Workflow de dockerhub](./img/workflows-dockerhub.png)
-    ![Imagenes en Dockerhub](./img/imagenes-dockerhub.png)
+    <p align="center">
+      <img src="./img/workflows-dockerhub.png" alt="Workflow de DockerHub" width="80%">
+    </p>
+
+    <p align="center">
+      <img src="./img/imagenes-dockerhub.png" alt="Imágenes en DockerHub" width="60%">
+    </p>
 
 - **Helm**: Actualización y empaquetado de Helm Charts para versiones consistentes.
   ```sh
@@ -796,48 +846,36 @@ Este workflow automatiza la generación de releases, la construcción de imágen
   ```
 - **Caché de herramientas**: Optimiza la instalación de yq, helm-docs y dependencias npm.
 
-![Release workflows](./img/release_workflows.png)
-![Artefactos con version en Github](./img/github_artefactos.png)
+  <p align="center">
+    <img src="./img/release_workflows.png" alt="Release Workflows" width="80%">
+  </p>
+
+  <p align="center">
+    <img src="./img/github_artefactos.png" alt="Artefactos con versión en GitHub" width="20%">
+  </p>
 
 
 
-# Guía de Despliegue de Infraestructura y Aplicación en GCP
+# Migración y despliegue en Google Cloud
 
 Este proyecto contiene los archivos necesarios para desplegar una infraestructura en Google Cloud Platform (GCP), utilizando **Terraform** para la creación de un clúster de Kubernetes (GKE), una base de datos gestionada (Cloud SQL), y el despliegue de la aplicación Laravel con Helm Charts.
 
 ## Estructura de archivos 
 
 ```
-  ├── Terraform-rev/
-  │   ├── main.tf          # Configuración principal de Terraform
-  │   ├── variables.tf     # Variables globales
-  │   ├── provider.tf      # Proveedores de Terraform (GCP y Kubernetes)
-  │   ├── gke-cluster.tf   # Configuración del clúster GKE
-  │   ├── cloudsql-instance.tf      # Configuración BBDD gestionada
-  │   ├── kubernetes-resources.tf   # Despliegue de recursos Kubernetes 
-  │   ├── load-balancer.tf          # Configuración del Ingress
-  │   ├── outputs.tf       # Outputs del despliegue 
-  ├──
+```plaintext
+gcp/
+├── gke-cluster.tf             # Configuración del clúster de Kubernetes (GKE) en GCP
+├── helm-release.tf            # Configuración para desplegar Helm Charts en el clúster GKE
+├── providers.tf               # Configuración de proveedores (Google Cloud y Helm)
+└── variables.tf               # Variables globales
 ```
-## Descrición Archivos
-
-- **main.tf**: Contiene la configuración base del proveedor GCP y los recursos principales (clúster GKE, base de datos Cloud SQL, etc.).
-- **variables.tf**: Declara las variables utilizadas en todo el proyecto (por ejemplo, región, nombre del proyecto, etc.).
-- **provider.tf**: Configura los proveedores de GCP y Kubernetes.
-- **gke-cluster.tf**: Define el clúster GKE con los nodos necesarios para desplegar la aplicación.
-- **cloudsql-instance.tf**: Configura la base de datos gestionada Cloud SQL (MySQL 8.0) y sus credenciales.
-- **kubernetes-resources.tf**: Despliega la aplicación Laravel en el clúster GKE utilizando Helm Charts.
-- **load-balancer.tf**: Configura un recurso Ingress para exponer la aplicación al exterior.
-- **outputs.tf**: Proporciona información útil del despliegue, como el endpoint del clúster y el host del Ingress.
-
 ## Guía de despliegue
 
 **Requisitos previos**
 - Cuenta activa en Google Cloud Plattform(GCP)
 - Instalación de:
   · Terraform
-  · kubectl
-  · Helm
 - Configuración del acceso a GCP con gcloud CLI:
 
 ```
@@ -868,43 +906,32 @@ gcloud config set project <ID_PROYECTO>
 
 - Configurar el Clúster GKE. Obtener las credenciales del clúster GKE y configúralas en kubectl:
   ```sh
-  gcloud container clusters get-credentials laravel-mysql-cluster --region europe-west3
+  gcloud container clusters get-credentials laravel-mysql-cluster --region us-central1
   ```
-- Desplegar la Aplicación con Helm
-  - Dirígete al directorio donde están los Helm Charts (charts/).
-  - Ejecuta el siguiente comando para instalar el chart:
-  ```sh
-  helm install laravel-mysql ./charts
-  ```
-- Acceder a la aplicación:
-  - Obtén la IP externa del Ingress:
-    ```sh
-    kubectl get ingress -n laravel-mysql
-    ```
-  - Agrega la IP al archivo /etc/hosts en tu máquina local:
-    ```sh
-    <IP_INGRESS> practica.local
-    ```
-- Abrir un navegador y acceder a:
-  - Aplicación principal: http://practica.local
-  - Adminer: http://practica.local/adminer
+Verificamos que los recursos se hayan desplegado correctamente.
+- En la consola de GCP  
+  <p align="center">
+    <img src="./img/cluster-k8-GCP.png" alt="Cluster GKE" width="90%">
+  </p>
+  Comprobamos que se creen las instancias.  
+  <p align="center">
+    <img src="./img/instancias-GCP.png" alt="Instancias en el cluster" width="90%">
+  </p>
+  Comprobamos que se creen los nodos.  
+  <p align="center">
+    <img src="./img/nodos-cluster.png" alt="Nodos en el cluster" width="90%">
+  </p>
 
-- Variables de entorno para Laravel. Verificar de que la aplicación Laravel esté configurada para conectarse a la base de datos gestionada (Cloud SQL) utilizando variables de entorno en el archivo .env.  
-  Por ejemplo:
-  ```sh
-  DB_HOST=<CONNECTION_NAME>
-  DB_PORT=3306
-  DB_DATABASE=mydatabase
-  DB_USERNAME=root
-  DB_PASSWORD=rootpassword
-  ```
-## Outputs
-Tras ejecutar terraform apply, obtendrás los siguientes outputs:
-```sh
-gke_cluster_endpoint: Endpoint del clúster GKE.
-cloudsql_instance_connection_name: Conexión de la instancia de Cloud SQL.
-ingress_host: URL de la aplicación desplegada.
-```  
+- Usando los comandos de `kubectl`, comprobamos que se hayan desplegado los recursos  
+  <p align="center">
+    <img src="./img/all-recursos-GCP.png" alt="Despliegue de los recursos" width="80%">
+  </p>
+  Verificamos los pods.  
+  <p align="center">
+    <img src="./img/podsGCP.png" alt="Despliegue de los pods" width="90%">
+  </p>
+
+
 ## Limpieza de recursos
 
 Para eliminar todos los recursos creados, ejecuta:
