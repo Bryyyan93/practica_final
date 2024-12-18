@@ -1,8 +1,9 @@
 # helm-release.tf
 resource "helm_release" "laravel_mysql" {
-  name       = "laravel-mysql"
-  namespace  = "laravel-mysql"
+  name       = var.helm_release_name
+  namespace  = var.namespace
   create_namespace = true
+  timeout          = var.helm_timeout # Aumenta el timeout a 10 minutos
 
   #repository = "https://github.com/Bryyyan93/practica_final.git"
   chart = "${path.module}/../charts" # Ruta local al Helm Chart
