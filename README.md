@@ -589,7 +589,7 @@ A continuación, se configurará y se desplegará `ArgoCD` en un clúster de Kub
 ### Configuración del manifiesto
 El manifiesto creado para lanzar el despliegue de ArgoCD estará en la `charts/argocd/` y se llamará `argoapp.yaml`.  En este manifiesto se hará las siguientes modificaciones:
 
-- Se deberá modificar el manifiesto de argocd para registar la aplicación desde el repositorio.  
+- Se deberá modificar el manifiesto de argocd para registrar la aplicación desde el repositorio.  
   ```
     project: default
     source:
