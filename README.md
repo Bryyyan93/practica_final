@@ -858,7 +858,28 @@ Este workflow automatiza la generación de releases, la construcción de imágen
 
 # Migración y despliegue en Google Cloud
 
-Este proyecto contiene los archivos necesarios para desplegar una infraestructura en Google Cloud Platform (GCP), utilizando **Terraform** para la creación de un clúster de Kubernetes (GKE), una base de datos gestionada (Cloud SQL), y el despliegue de la aplicación Laravel con Helm Charts.
+Utilizamos Terraform para crear la infraestructura de la aplicación en Google Cloud Platform, que consistirá en:
+
+- Despliegue de un clúster GKE para ejecutar la aplicación. Lo realizamos a través del archivo gke-cluster.tf
+
+- Base de datos MySQL que no utiliza Cloud SQL, sino que se despliega dentro del clúster como un pod gestionado por Kubernetes mediante el archivo helm-release.tf. Esto se define en los Helm Charts y se utiliza la imagen oficial de MySQL.
+
+**Beneficios de este Enfoque**
+1. Costos Reducidos:
+
+No utilizamos Cloud SQL; la base de datos se despliega en pods, reduciendo costos.
+
+2. Alta Disponibilidad: 
+
+Kubernetes garantiza que el pod de MySQL esté siempre disponible.
+
+3. Persistencia: 
+
+Los datos se almacenan en un volumen persistente (PVC), evitando pérdidas al reiniciar el pod.
+
+4. Gestión Automatizada:
+
+ El despliegue se realiza de forma declarativa mediante Helm y Terraform
 
 ## Estructura de archivos 
 
